@@ -9,8 +9,8 @@
  * @version    0.1.1-a
  * @author     James Brumond
  * @copyright  Copyright (c) 2008 - 2009, EllisLab, Inc.
- * @license    http://codeigniter.com/user_guide/license.html
- * @link       http://codeigniter.com
+ * @license    http://github.com/kbjr/Git.php
+ * @link       http://code.kbjrweb.com/project/gitphp
  */
 
 if (__FILE__ == $_SERVER['SCRIPT_FILENAME']) die('Bad load order');
