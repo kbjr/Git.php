@@ -1,0 +1,341 @@
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed'); 
+
+/**
+ * CodeIgniter
+ *
+ * An open source application development framework for PHP 4.3.2 or newer
+ *
+ * @package		CodeIgniter
+ * @author		ExpressionEngine Dev Team
+ * @copyright	Copyright (c) 2008 - 2009, EllisLab, Inc.
+ * @license		http://codeigniter.com/user_guide/license.html
+ * @link		http://codeigniter.com
+ * @since		Version 1.0
+ * @filesource
+ */
+
+// ------------------------------------------------------------------------
+
+/**
+ * CodeIgniter Git Interface Class
+ *
+ * This class enables the creating, reading, and manipulation
+ * of git repositories.
+ *
+ * @package		CodeIgniter
+ * @subpackage	Git.php
+ * @category	Libraries
+ * @author		James Brumond
+ * @link		http://code.kbjrweb.com/project/gitphp
+ */
+class Git {
+
+	/**
+	 * Create a new git repository
+	 *
+	 * Accepts a creation path, and, optionally, a source path
+	 *
+	 * @access	public
+	 * @param	string	repository path
+	 * @param	string	directory to source
+	 * @return	GitRepo
+	 */	
+	public function &create($repo_path, $source = null) {
+		return GitRepo::create_new($repo_path, $source);
+	}
+
+	/**
+	 * Open an existing git repository
+	 *
+	 * Accepts a repository path
+	 *
+	 * @access	public
+	 * @param	string	repository path
+	 * @return	GitRepo
+	 */	
+	public function open($repo_path) {
+		return new GitRepo($repo_path);
+	}
+	
+}
+
+// ------------------------------------------------------------------------
+
+/**
+ * Git Repository Interface Class
+ *
+ * This class enables the creating, reading, and manipulation
+ * of a git repository
+ *
+ * @package		CodeIgniter
+ * @subpackage	CIGit
+ * @category	Libraries
+ * @author		James Brumond
+ * @link		http://code.kbjrweb.com/project/gitphp
+ */
+class GitRepo {
+
+	protected $repo_path = null;
+	
+	protected $git_path = '/usr/bin/git';
+
+	/**
+	 * Create a new git repository
+	 *
+	 * Accepts a creation path, and, optionally, a source path
+	 *
+	 * @access	public
+	 * @param	string	repository path
+	 * @param	string	directory to source
+	 * @return	GitRepo
+	 */	
+	public static function &create_new($repo_path, $source = null) {
+		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
+			throw new Exception('"$repo_path" is already a git repository');
+		} else {
+			if (is_string($source)) {
+				$repo = new self($repo_path, true);
+				$repo->clone_from($source);
+				return $repo;
+			} else {
+				return new self($repo_path, true);
+			}
+		}
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * Accepts a repository path
+	 *
+	 * @access	public
+	 * @param	string	repository path
+	 * @param	bool	create if not exists?
+	 * @return	void
+	 */	
+	public function __construct($repo_path = null, $create_new = false) {
+		if (is_string($repo_path))
+			$this->set_repo_path($repo_path, $create_new);
+	}
+
+	/**
+	 * Set the repository's path
+	 *
+	 * Accepts the repository path
+	 *
+	 * @access	public
+	 * @param	string	repository path
+	 * @param	bool	create if not exists?
+	 * @return	void
+	 */	
+	public function set_repo_path($repo_path, $create_new = false) {
+		if (is_string($repo_path)) {
+			if ($repo_path = realpath($repo_path)) {
+				if (is_dir($repo_path)) {
+					if (file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
+						$this->repo_path = $repo_path;
+					} else {
+						if ($create_new) {
+							$this->repo_path = $repo_path;
+							$this->run('init');
+						} else {
+							throw new Exception('"$repo_path" is not a git repository');
+						}
+					}
+				} else {
+					throw new Exception('"$repo_path" is not a directory');
+				}
+			} else {
+				if ($create_new) {
+					if ($parent = realpath(dirname($repo_path))) {
+						try {
+							mkdir($repo_path);
+						} catch (Exception $e) {
+							throw $e; return;
+						}
+						$this->repo_path = $repo_path;
+						$this->run('init');
+					} else {
+						throw new Exception('cannot create repository in non-existent directory');
+					}
+				} else {
+					throw new Exception('"$repo_path" does not exist');
+				}
+			}
+		}
+	}
+
+	/**
+	 * Run a command in the git repository
+	 *
+	 * Accepts a shell command to run
+	 *
+	 * @access	protected
+	 * @param	string	command to run
+	 * @return	string
+	 */	
+	protected function run_command($command) {
+		$command = $this->createCommandString($arguments, $options);
+
+		$descriptorspec = array(
+			1 => array('pipe', 'w'),
+			2 => array('pipe', 'w'),
+		);
+		$pipes = array();
+		$resource = proc_open($command, $descriptorspec, $pipes, $this->repo_path);
+
+		$stdout = stream_get_contents($pipes[1]);
+		$stderr = stream_get_contents($pipes[2]);
+		foreach ($pipes as $pipe) {
+			fclose($pipe);
+		}
+
+		$status = trim(proc_close($resource));
+		if ($status) {
+			$message =
+				"Git command threw errors.\n\n" .
+				"Output:\n$stdout\n" .
+				"Error:\n$stderr";
+			throw new Exception($message);
+		}
+
+		return $stdout;
+	}
+
+	/**
+	 * Run a git command in the git repository
+	 *
+	 * Accepts a git command to run
+	 *
+	 * @access	public
+	 * @param	string	command to run
+	 * @return	string
+	 */	
+	public function run($command) {
+		return $this->run_command($this->git_path." ".$command);
+	}
+
+	/**
+	 * Runs a `git add` call
+	 *
+	 * Accepts a list of files to add
+	 *
+	 * @access	public
+	 * @param	mixed	files to add
+	 * @return	string
+	 */	
+	public function add($files = "*") {
+		if (is_array($files)) $files = '"'.implode('" "', $files).'"';
+		return $this->run("add $file -v");
+	}
+
+	/**
+	 * Runs a `git commit` call
+	 *
+	 * Accepts a commit message string
+	 *
+	 * @access	public
+	 * @param	string	commit message
+	 * @return	string
+	 */	
+	public function commit($message = "") {
+		return $this->run("commit -av -m \"$message\"");
+	}
+
+	/**
+	 * Runs a `git clone` call to clone the current repository
+	 * into a different directory
+	 *
+	 * Accepts a target directory
+	 *
+	 * @access	public
+	 * @param	string	target directory
+	 * @return	string
+	 */	
+	public function clone_to($target) {
+		return $this->run("clone --local ".$this->repo_path." $target");
+	}
+
+	/**
+	 * Runs a `git clone` call to clone a different repository
+	 * into the current repository
+	 *
+	 * Accepts a source directory
+	 *
+	 * @access	public
+	 * @param	string	source directory
+	 * @return	string
+	 */	
+	public function clone_from($source) {
+		return $this->run("clone --local $source ".$this->repo_path);
+	}
+
+	/**
+	 * Runs a `git clone` call to clone a remote repository
+	 * into the current repository
+	 *
+	 * Accepts a source url
+	 *
+	 * @access	public
+	 * @param	string	source url
+	 * @return	string
+	 */	
+	public function clone_remote($source) {
+		return $this->run("clone $source ".$this->repo_path);
+	}
+
+	/**
+	 * Runs a `git clean` call
+	 *
+	 * Accepts a remove directories flag
+	 *
+	 * @access	public
+	 * @param	bool	delete directories?
+	 * @return	string
+	 */	
+	public function clean($dirs = false) {
+		return $this->run("clean".(($dirs) ? " -d" : ""));
+	}
+
+	/**
+	 * Runs a `git branch` call
+	 *
+	 * Accepts a name for the branch
+	 *
+	 * @access	public
+	 * @param	string	branch name
+	 * @return	string
+	 */	
+	public function create_branch($branch) {
+		return $this->run("branch $branch");
+	}
+
+	/**
+	 * Runs a `git branch -[d|D]` call
+	 *
+	 * Accepts a name for the branch
+	 *
+	 * @access	public
+	 * @param	string	branch name
+	 * @return	string
+	 */	
+	public function delete_branch($branch, $force = false) {
+		return $this->run("branch ".(($force) ? '-D' : '-d')." $branch");
+	}
+
+	/**
+	 * Runs a `git checkout` call
+	 *
+	 * Accepts a name for the branch
+	 *
+	 * @access	public
+	 * @param	string	branch name
+	 * @return	string
+	 */	
+	public function checkout($branch) {
+		return $this->run("checkout $branch");
+	}
+
+}
+
+/* End Of File */
