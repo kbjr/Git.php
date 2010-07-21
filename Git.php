@@ -8,7 +8,7 @@
  * @package    Git.php
  * @version    0.1.1-a
  * @author     James Brumond
- * @copyright  Copyright (c) 2008 - 2009, EllisLab, Inc.
+ * @copyright  Copyright 2010 James Brumond
  * @license    http://github.com/kbjr/Git.php
  * @link       http://code.kbjrweb.com/project/gitphp
  */
