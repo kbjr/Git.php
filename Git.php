@@ -5,7 +5,7 @@
  *
  * A PHP git library
  *
- * @package	   Git.php
+ * @package    Git.php
  * @version    0.1.1-a
  * @author     James Brumond
  * @copyright  Copyright (c) 2008 - 2009, EllisLab, Inc.
@@ -32,10 +32,10 @@ class Git {
 	 *
 	 * Accepts a creation path, and, optionally, a source path
 	 *
-	 * @access	public
-	 * @param	string	repository path
-	 * @param	string	directory to source
-	 * @return	GitRepo
+	 * @access  public
+	 * @param   string  repository path
+	 * @param   string  directory to source
+	 * @return  GitRepo
 	 */	
 	public static function &create($repo_path, $source = null) {
 		return GitRepo::create_new($repo_path, $source);
