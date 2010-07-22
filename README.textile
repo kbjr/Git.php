@@ -1,7 +1,7 @@
 h1. Git.php
 
 Author: James Brumond
-Version: 0.1.1-a
+Version: 0.1.1-rc
 
 Copyright 2010 James Brumond
 Dual licensed under MIT and GPL

@@ -53,6 +53,19 @@ class Git {
 	public static function open($repo_path) {
 		return new GitRepo($repo_path);
 	}
+
+	/**
+	 * Checks if a variable is an instance of GitRepo
+	 *
+	 * Accepts a variable
+	 *
+	 * @access	public
+	 * @param	mixed	variable
+	 * @return	bool
+	 */	
+	public static function is_repo($var) {
+		return (get_class($var) == 'GitRepo');
+	}
 	
 }
 
@@ -70,7 +83,7 @@ class GitRepo {
 
 	protected $repo_path = null;
 	
-	protected $git_path = '/usr/bin/git';
+	public $git_path = '/usr/bin/git';
 
 	/**
 	 * Create a new git repository
@@ -86,13 +99,10 @@ class GitRepo {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"$repo_path" is already a git repository');
 		} else {
-			if (is_string($source)) {
-				$repo = new self($repo_path, true);
+			$repo = new self($repo_path, true, false);
+			if (is_string($source))
 				$repo->clone_from($source);
-				return $repo;
-			} else {
-				return new self($repo_path, true);
-			}
+			return $repo;
 		}
 	}
 
@@ -105,10 +115,10 @@ class GitRepo {
 	 * @param	string	repository path
 	 * @param	bool	create if not exists?
 	 * @return	void
-	 */	
-	public function __construct($repo_path = null, $create_new = false) {
+	 */
+	public function __construct($repo_path = null, $create_new = false, $_init = true) {
 		if (is_string($repo_path))
-			$this->set_repo_path($repo_path, $create_new);
+			$this->set_repo_path($repo_path, $create_new, $_init);
 	}
 
 	/**
@@ -120,17 +130,18 @@ class GitRepo {
 	 * @param	string	repository path
 	 * @param	bool	create if not exists?
 	 * @return	void
-	 */	
-	public function set_repo_path($repo_path, $create_new = false) {
+	 */
+	public function set_repo_path($repo_path, $create_new = false, $_init = true) {
 		if (is_string($repo_path)) {
-			if ($repo_path = realpath($repo_path)) {
+			if ($new_path = realpath($repo_path)) {
+				$repo_path = $new_path;
 				if (is_dir($repo_path)) {
 					if (file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 						$this->repo_path = $repo_path;
 					} else {
 						if ($create_new) {
 							$this->repo_path = $repo_path;
-							$this->run('init');
+							if ($_init) $this->run('init');
 						} else {
 							throw new Exception('"$repo_path" is not a git repository');
 						}
@@ -141,13 +152,9 @@ class GitRepo {
 			} else {
 				if ($create_new) {
 					if ($parent = realpath(dirname($repo_path))) {
-						try {
-							mkdir($repo_path);
-						} catch (Exception $e) {
-							throw $e; return;
-						}
+						mkdir($repo_path);
 						$this->repo_path = $repo_path;
-						$this->run('init');
+						if ($_init) $this->run('init');
 					} else {
 						throw new Exception('cannot create repository in non-existent directory');
 					}
@@ -156,6 +163,30 @@ class GitRepo {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Tests if git is installed
+	 *
+	 * @access	public
+	 * @return	bool
+	 */	
+	public function test_git() {
+		$descriptorspec = array(
+			1 => array('pipe', 'w'),
+			2 => array('pipe', 'w'),
+		);
+		$pipes = array();
+		$resource = proc_open($this->git_path, $descriptorspec, $pipes);
+
+		$stdout = stream_get_contents($pipes[1]);
+		$stderr = stream_get_contents($pipes[2]);
+		foreach ($pipes as $pipe) {
+			fclose($pipe);
+		}
+
+		$status = trim(proc_close($resource));
+		return ($status != 127);
 	}
 
 	/**
@@ -168,8 +199,6 @@ class GitRepo {
 	 * @return	string
 	 */	
 	protected function run_command($command) {
-		$command = $this->createCommandString($arguments, $options);
-
 		$descriptorspec = array(
 			1 => array('pipe', 'w'),
 			2 => array('pipe', 'w'),
@@ -184,13 +213,7 @@ class GitRepo {
 		}
 
 		$status = trim(proc_close($resource));
-		if ($status) {
-			$message =
-				"Git command threw errors.\n\n" .
-				"Output:\n$stdout\n" .
-				"Error:\n$stderr";
-			throw new Exception($message);
-		}
+		if ($status) throw new Exception($stderr);
 
 		return $stdout;
 	}
