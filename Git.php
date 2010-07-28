@@ -99,7 +99,7 @@ class GitRepo {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"$repo_path" is already a git repository');
 		} else {
-			$repo = new self($repo_path, true, false);
+			$repo = new self($repo_path, true, !! is_string($source));
 			if (is_string($source))
 				$repo->clone_from($source);
 			return $repo;
