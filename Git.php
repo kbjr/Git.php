@@ -243,7 +243,7 @@ class GitRepo {
 	 */	
 	public function add($files = "*") {
 		if (is_array($files)) $files = '"'.implode('" "', $files).'"';
-		return $this->run("add $file -v");
+		return $this->run("add $files -v");
 	}
 
 	/**
