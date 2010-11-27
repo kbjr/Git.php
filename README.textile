@@ -22,3 +22,4 @@ This library was originally coded with "CodeIgniter":http://codeigniter.com in m
 h2. More Info
 
 For more information, including complete documentation and API, see the project home page, "http://code.kbjrweb.com/project/gitphp":http://code.kbjrweb.com/project/gitphp
+Also, a tutorial on how to use Git.php can be found on my blog at "http://blog.kbjrweb.com/archives/169":http://blog.kbjrweb.com/archives/169
