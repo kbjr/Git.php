@@ -341,6 +341,41 @@ class GitRepo {
 	}
 
 	/**
+	 * Runs a `git branch` call
+	 *
+	 * @access	public
+	 * @param	bool keep_asterisk Keep asterisk mark on active branch
+	 * @return	array branch names
+	 */
+	public function list_branches($keep_asterisk = false) {
+		$branchArray = explode("\n", $this->run("branch"));
+		foreach($branchArray as $i => &$branch) {
+		    $branch = trim($branch);
+		    if(!$keep_asterisk)
+			$branch = str_replace("* ", "", $branch);
+		    if($branch == "")
+			unset($branchArray[$i]);
+		}
+		return $branchArray;
+	}
+
+	/**
+	 * Retrurns name of active branch
+	 *
+	 * @access	public
+	 * @param	bool keep_asterisk Keep asterisk mark on branch name
+	 */
+	public function active_branch($keep_asterisk = false) {
+		$branchArray = $this->list_branches(true);
+		$active_branch = preg_grep("/^\*/", $branchArray);
+		reset($active_branch);
+		if($keep_asterisk)
+		    return current($active_branch);
+		else
+		    return str_replace("* ", "", current($active_branch));
+	}
+
+	/**
 	 * Runs a `git checkout` call
 	 *
 	 * Accepts a name for the branch
