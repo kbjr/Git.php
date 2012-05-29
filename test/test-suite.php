@@ -21,15 +21,15 @@ require DIR."/../Git.php";
 $Git_Tests = array(
 	
 	'Git' => function() {
-		$return = array(0, '');
+		$return = null;
 		$repo = new GitRepo();
 		$found = $repo->test_git();
 		if ($found) {
-			return array(0, "Git was located and tested successfully");
+			$return = array(0, "Git was located and tested successfully");
 		} else {
-			return array(1, "Git could not be found at the default location");
+			$return = array(1, "Git could not be found at the default location");
 		}
-		
+		return $return;
 	},
 	
 	'Git::create()' => function() {
