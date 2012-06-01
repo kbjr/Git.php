@@ -33,7 +33,7 @@ $Git_Tests = array(
 	},
 	
 	'Git::create()' => function() {
-		$return = array(0, '');
+		$return = null;
 		$repo = Git::create(DIR."/create");
 		if (! Git::is_repo($repo)) {
 			$return = array(2, "Git::create() failed to produce expected output.");
@@ -44,7 +44,7 @@ $Git_Tests = array(
 	},
 	
 	'Git::create([ $source ])' => function() {
-		$return = array(0, '');
+		$return = null;
 		$repo = Git::create(DIR."/createfrom", DIR."/test.git");
 		if (! Git::is_repo($repo)) {
 			$return = array(2, "Git::create([ \$source ]) failed to produce expected output.");
@@ -55,7 +55,7 @@ $Git_Tests = array(
 	},
 	
 	'Git::open()' => function() {
-		$return = array(0, '');
+		$return = null;
 		$repo = Git::open(DIR."/test.git");
 		if (! Git::is_repo($repo)) {
 			$return = array(2, "Git::open() failed to produce expected output.");
