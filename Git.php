@@ -36,7 +36,7 @@ class Git {
 	 * @param   string  repository path
 	 * @param   string  directory to source
 	 * @return  GitRepo
-	 */	
+	 */
 	public static function &create($repo_path, $source = null) {
 		return GitRepo::create_new($repo_path, $source);
 	}
@@ -49,7 +49,7 @@ class Git {
 	 * @access  public
 	 * @param   string  repository path
 	 * @return  GitRepo
-	 */	
+	 */
 	public static function open($repo_path) {
 		return new GitRepo($repo_path);
 	}
@@ -62,11 +62,11 @@ class Git {
 	 * @access  public
 	 * @param   mixed   variable
 	 * @return  bool
-	 */	
+	 */
 	public static function is_repo($var) {
 		return (get_class($var) == 'GitRepo');
 	}
-	
+
 }
 
 // ------------------------------------------------------------------------
@@ -82,7 +82,7 @@ class Git {
 class GitRepo {
 
 	protected $repo_path = null;
-	
+
 	public $git_path = '/usr/bin/git';
 
 	/**
@@ -94,7 +94,7 @@ class GitRepo {
 	 * @param   string  repository path
 	 * @param   string  directory to source
 	 * @return  GitRepo
-	 */	
+	 */
 	public static function &create_new($repo_path, $source = null) {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"$repo_path" is already a git repository');
@@ -171,7 +171,7 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @return  bool
-	 */	
+	 */
 	public function test_git() {
 		$descriptorspec = array(
 			1 => array('pipe', 'w'),
@@ -198,7 +198,7 @@ class GitRepo {
 	 * @access  protected
 	 * @param   string  command to run
 	 * @return  string
-	 */	
+	 */
 	protected function run_command($command) {
 		$descriptorspec = array(
 			1 => array('pipe', 'w'),
@@ -227,7 +227,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  command to run
 	 * @return  string
-	 */	
+	 */
 	public function run($command) {
 		return $this->run_command($this->git_path." ".$command);
 	}
@@ -240,7 +240,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   mixed   files to add
 	 * @return  string
-	 */	
+	 */
 	public function add($files = "*") {
 		if (is_array($files)) $files = '"'.implode('" "', $files).'"';
 		return $this->run("add $files -v");
@@ -254,7 +254,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  commit message
 	 * @return  string
-	 */	
+	 */
 	public function commit($message = "") {
 		return $this->run("commit -av -m \"$message\"");
 	}
@@ -268,7 +268,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  target directory
 	 * @return  string
-	 */	
+	 */
 	public function clone_to($target) {
 		return $this->run("clone --local ".$this->repo_path." $target");
 	}
@@ -282,7 +282,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  source directory
 	 * @return  string
-	 */	
+	 */
 	public function clone_from($source) {
 		return $this->run("clone --local $source ".$this->repo_path);
 	}
@@ -296,7 +296,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  source url
 	 * @return  string
-	 */	
+	 */
 	public function clone_remote($source) {
 		return $this->run("clone $source ".$this->repo_path);
 	}
@@ -309,7 +309,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   bool    delete directories?
 	 * @return  string
-	 */	
+	 */
 	public function clean($dirs = false) {
 		return $this->run("clean".(($dirs) ? " -d" : ""));
 	}
@@ -322,7 +322,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  branch name
 	 * @return  string
-	 */	
+	 */
 	public function create_branch($branch) {
 		return $this->run("branch $branch");
 	}
@@ -335,7 +335,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  branch name
 	 * @return  string
-	 */	
+	 */
 	public function delete_branch($branch, $force = false) {
 		return $this->run("branch ".(($force) ? '-D' : '-d')." $branch");
 	}
@@ -384,11 +384,69 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  branch name
 	 * @return  string
-	 */	
+	 */
 	public function checkout($branch) {
 		return $this->run("checkout $branch");
 	}
 
+
+    /**
+     * Runs a `git merge` call
+     *
+     * Accepts a name for the branch to be merged
+     *
+     * @access  public
+     * @param   string $branch
+     * @return  string
+     */
+    public function merge($branch)
+    {
+        return $this->run("merge $branch --no-ff");
+    }
+
+
+    /**
+     * Runs a git fetch on the current branch
+     *
+     * @access  public
+     * @return  string
+     */
+    public function fetch()
+    {
+        return $this->run("fetch");
+    }
+
+    /**
+     * Add a new tag on the current position
+     *
+     * Accepts the name for the tag and the message
+     *
+     * @param string $tag
+     * @param string $message
+     * @return string
+     */
+    public function add_tag($tag, $message = null)
+    {
+        if ($message === null) {
+            $message = $tag;
+        }
+        return $this->run("tag -a $tag -m $message");
+    }
+
+
+    /**
+     * Push specific branch to a remote
+     *
+     * Accepts the name of the remote and local branch
+     *
+     * @param string $remote
+     * @param string $branch
+     * @return string
+     */
+    public function push($remote, $branch)
+    {
+        return $this->run("push --tags $remote $branch");
+    }
 }
 
 /* End Of File */
