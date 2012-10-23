@@ -433,6 +433,20 @@ class GitRepo {
         return $this->run("tag -a $tag -m $message");
     }
 
+
+    /**
+     * Push specific branch to a remote
+     *
+     * Accepts the name of the remote and local branch
+     *
+     * @param string $remote
+     * @param string $branch
+     * @return string
+     */
+    public function push($remote, $branch)
+    {
+        return $this->run("push --tags $remote $branch");
+    }
 }
 
 /* End Of File */
