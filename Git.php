@@ -447,6 +447,26 @@ class GitRepo {
     {
         return $this->run("push --tags $remote $branch");
     }
+    
+    /**
+     * Sets the project description.
+     *
+     * @param string $new
+     */
+    public function set_description($new)
+    {
+        file_put_contents($this->repo_path."/.git/description", $new);
+    }
+
+    /**
+     * Gets the project description.
+     *
+     * @return string
+     */
+    public function get_description()
+    {
+        return file_get_contents($this->repo_path."/.git/description");
+    }
 }
 
 /* End Of File */
