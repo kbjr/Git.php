@@ -263,7 +263,7 @@ class GitRepo {
 	 * @return  string
 	 */	
 	public function commit($message = "") {
-		return $this->run("commit -av -m \"$message\"");
+		return $this->run("commit -av -m ".escapeshellarg($message));
 	}
 
 	/**
