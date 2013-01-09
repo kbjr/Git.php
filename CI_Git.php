@@ -396,6 +396,99 @@ class GitRepo {
 		return $this->run("checkout $branch");
 	}
 
+
+    /**
+     * Runs a `git merge` call
+     *
+     * Accepts a name for the branch to be merged
+     *
+     * @access  public
+     * @param   string $branch
+     * @return  string
+     */
+    public function merge($branch)
+    {
+        return $this->run("merge $branch --no-ff");
+    }
+
+
+    /**
+     * Runs a git fetch on the current branch
+     *
+     * @access  public
+     * @return  string
+     */
+    public function fetch()
+    {
+        return $this->run("fetch");
+    }
+
+    /**
+     * Add a new tag on the current position
+     *
+     * Accepts the name for the tag and the message
+     *
+     * @param string $tag
+     * @param string $message
+     * @return string
+     */
+    public function add_tag($tag, $message = null)
+    {
+        if ($message === null) {
+            $message = $tag;
+        }
+        return $this->run("tag -a $tag -m $message");
+    }
+
+
+    /**
+     * Push specific branch to a remote
+     *
+     * Accepts the name of the remote and local branch
+     *
+     * @param string $remote
+     * @param string $branch
+     * @return string
+     */
+    public function push($remote, $branch)
+    {
+        return $this->run("push --tags $remote $branch");
+    }
+    
+    /**
+     * Pull specific branch from remote
+     *
+     * Accepts the name of the remote and local branch
+     *
+     * @param string $remote
+     * @param string $branch
+     * @return string
+     */
+    public function pull($remote, $branch)
+    {
+        return $this->run("pull $remote $branch");
+    }
+
+    /**
+     * Sets the project description.
+     *
+     * @param string $new
+     */
+    public function set_description($new)
+    {
+        file_put_contents($this->repo_path."/.git/description", $new);
+    }
+
+    /**
+     * Gets the project description.
+     *
+     * @return string
+     */
+    public function get_description()
+    {
+        return file_get_contents($this->repo_path."/.git/description");
+    }
+
 }
 
 /* End of file CI_Git.php */
