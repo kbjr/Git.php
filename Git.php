@@ -28,6 +28,30 @@ if (__FILE__ == $_SERVER['SCRIPT_FILENAME']) die('Bad load order');
 class Git {
 
 	/**
+	 * Git executable location
+	 * @var string
+	 */
+	protected static $bin = '/usr/bin/git';
+	
+	/**
+	 * Sets git executable path
+	 * 
+	 * @param string $path executable location
+	 */
+	public static function set_bin($path)
+	{
+		self::$bin = $path;
+	}
+	
+	/**
+	 * Gets git executable path
+	 */
+	public static function get_bin()
+	{
+        return self::$bin;
+	}
+
+	/**
 	 * Create a new git repository
 	 *
 	 * Accepts a creation path, and, optionally, a source path
@@ -82,8 +106,6 @@ class Git {
 class GitRepo {
 
 	protected $repo_path = null;
-
-	public $git_path = '/usr/bin/git';
 
 	/**
 	 * Create a new git repository
@@ -178,7 +200,7 @@ class GitRepo {
 			2 => array('pipe', 'w'),
 		);
 		$pipes = array();
-		$resource = proc_open($this->git_path, $descriptorspec, $pipes);
+		$resource = proc_open(Git::get_bin(), $descriptorspec, $pipes);
 
 		$stdout = stream_get_contents($pipes[1]);
 		$stderr = stream_get_contents($pipes[2]);
@@ -229,7 +251,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function run($command) {
-		return $this->run_command($this->git_path." ".$command);
+		return $this->run_command(Git::get_bin()." ".$command);
 	}
 
 	/**
