@@ -6,11 +6,10 @@
  * A PHP git library
  *
  * @package    Git.php
- * @version    0.1.1-a
+ * @version    0.1.2
  * @author     James Brumond
- * @copyright  Copyright 2010 James Brumond
- * @license    http://github.com/kbjr/Git.php
- * @link       http://code.kbjrweb.com/project/gitphp
+ * @copyright  Copyright 2013 James Brumond
+ * @repo       http://github.com/kbjr/Git.php
  */
 
 if (__FILE__ == $_SERVER['SCRIPT_FILENAME']) die('Bad load order');
@@ -29,6 +28,7 @@ class Git {
 
 	/**
 	 * Git executable location
+	 *
 	 * @var string
 	 */
 	protected static $bin = '/usr/bin/git';
@@ -38,17 +38,15 @@ class Git {
 	 * 
 	 * @param string $path executable location
 	 */
-	public static function set_bin($path)
-	{
+	public static function set_bin($path) {
 		self::$bin = $path;
 	}
 	
 	/**
 	 * Gets git executable path
 	 */
-	public static function get_bin()
-	{
-        return self::$bin;
+	public static function get_bin() {
+		return self::$bin;
 	}
 
 	/**
@@ -122,9 +120,11 @@ class GitRepo {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
 			$repo = new self($repo_path, true, false);
-			if (is_string($source))
+			if (is_string($source)) {
 				$repo->clone_from($source);
-			else $repo->run('init');
+			} else {
+				$repo->run('init');
+			}
 			return $repo;
 		}
 	}
@@ -140,8 +140,9 @@ class GitRepo {
 	 * @return  void
 	 */
 	public function __construct($repo_path = null, $create_new = false, $_init = true) {
-		if (is_string($repo_path))
+		if (is_string($repo_path)) {
 			$this->set_repo_path($repo_path, $create_new, $_init);
+		}
 	}
 
 	/**
@@ -164,7 +165,9 @@ class GitRepo {
 					} else {
 						if ($create_new) {
 							$this->repo_path = $repo_path;
-							if ($_init) $this->run('init');
+							if ($_init) {
+								$this->run('init');
+							}
 						} else {
 							throw new Exception('"'.$repo_path.'" is not a git repository');
 						}
@@ -264,7 +267,9 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function add($files = "*") {
-		if (is_array($files)) $files = '"'.implode('" "', $files).'"';
+		if (is_array($files)) {
+			$files = '"'.implode('" "', $files).'"';
+		}
 		return $this->run("add $files -v");
 	}
 
@@ -373,10 +378,12 @@ class GitRepo {
 		$branchArray = explode("\n", $this->run("branch"));
 		foreach($branchArray as $i => &$branch) {
 			$branch = trim($branch);
-			if (! $keep_asterisk)
+			if (! $keep_asterisk) {
 				$branch = str_replace("* ", "", $branch);
-			if ($branch == "")
+			}
+			if ($branch == "") {
 				unset($branchArray[$i]);
+			}
 		}
 		return $branchArray;
 	}
@@ -392,10 +399,11 @@ class GitRepo {
 		$branchArray = $this->list_branches(true);
 		$active_branch = preg_grep("/^\*/", $branchArray);
 		reset($active_branch);
-		if ($keep_asterisk)
+		if ($keep_asterisk) {
 			return current($active_branch);
-		else
+		} else {
 			return str_replace("* ", "", current($active_branch));
+		}
 	}
 
 	/**
@@ -412,97 +420,91 @@ class GitRepo {
 	}
 
 
-    /**
-     * Runs a `git merge` call
-     *
-     * Accepts a name for the branch to be merged
-     *
-     * @access  public
-     * @param   string $branch
-     * @return  string
-     */
-    public function merge($branch)
-    {
-        return $this->run("merge $branch --no-ff");
-    }
+	/**
+	 * Runs a `git merge` call
+	 *
+	 * Accepts a name for the branch to be merged
+	 *
+	 * @access  public
+	 * @param   string $branch
+	 * @return  string
+	 */
+	public function merge($branch) {
+		return $this->run("merge $branch --no-ff");
+	}
 
 
-    /**
-     * Runs a git fetch on the current branch
-     *
-     * @access  public
-     * @return  string
-     */
-    public function fetch()
-    {
-        return $this->run("fetch");
-    }
+	/**
+	 * Runs a git fetch on the current branch
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function fetch() {
+		return $this->run("fetch");
+	}
 
-    /**
-     * Add a new tag on the current position
-     *
-     * Accepts the name for the tag and the message
-     *
-     * @param string $tag
-     * @param string $message
-     * @return string
-     */
-    public function add_tag($tag, $message = null)
-    {
-        if ($message === null) {
-            $message = $tag;
-        }
-        return $this->run("tag -a $tag -m $message");
-    }
+	/**
+	 * Add a new tag on the current position
+	 *
+	 * Accepts the name for the tag and the message
+	 *
+	 * @param string $tag
+	 * @param string $message
+	 * @return string
+	 */
+	public function add_tag($tag, $message = null) {
+		if ($message === null) {
+			$message = $tag;
+		}
+		return $this->run("tag -a $tag -m $message");
+	}
 
 
-    /**
-     * Push specific branch to a remote
-     *
-     * Accepts the name of the remote and local branch
-     *
-     * @param string $remote
-     * @param string $branch
-     * @return string
-     */
-    public function push($remote, $branch)
-    {
-        return $this->run("push --tags $remote $branch");
-    }
-    
-    /**
-     * Pull specific branch from remote
-     *
-     * Accepts the name of the remote and local branch
-     *
-     * @param string $remote
-     * @param string $branch
-     * @return string
-     */
-    public function pull($remote, $branch)
-    {
-        return $this->run("pull $remote $branch");
-    }
+	/**
+	 * Push specific branch to a remote
+	 *
+	 * Accepts the name of the remote and local branch
+	 *
+	 * @param string $remote
+	 * @param string $branch
+	 * @return string
+	 */
+	public function push($remote, $branch) {
+		return $this->run("push --tags $remote $branch");
+	}
+	
+	/**
+	 * Pull specific branch from remote
+	 *
+	 * Accepts the name of the remote and local branch
+	 *
+	 * @param string $remote
+	 * @param string $branch
+	 * @return string
+	 */
+	public function pull($remote, $branch) {
+		return $this->run("pull $remote $branch");
+	}
 
-    /**
-     * Sets the project description.
-     *
-     * @param string $new
-     */
-    public function set_description($new)
-    {
-        file_put_contents($this->repo_path."/.git/description", $new);
-    }
+	/**
+	 * Sets the project description.
+	 *
+	 * @param string $new
+	 */
+	public function set_description($new) {
+		file_put_contents($this->repo_path."/.git/description", $new);
+	}
 
-    /**
-     * Gets the project description.
-     *
-     * @return string
-     */
-    public function get_description()
-    {
-        return file_get_contents($this->repo_path."/.git/description");
-    }
+	/**
+	 * Gets the project description.
+	 *
+	 * @return string
+	 */
+	public function get_description() {
+		return file_get_contents($this->repo_path."/.git/description");
+	}
+	
 }
 
-/* End Of File */
+/* End of file */
