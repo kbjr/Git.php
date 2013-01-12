@@ -8,7 +8,7 @@ Dual licensed under MIT and GPL
 
 ## Description
 
-A PHP git repository control library. Allows the running of any git command from a PHP class. Runs git commands using @proc_open@, not @exec@ or the type, therefore it can run in PHP safe mode.
+A PHP git repository control library. Allows the running of any git command from a PHP class. Runs git commands using `proc_open`, not `exec` or the type, therefore it can run in PHP safe mode.
 
 ## Requirements
 
