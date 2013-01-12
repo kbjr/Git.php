@@ -1,11 +1,5 @@
 # Git.php
 
-Author: James Brumond
-Version: 0.1.2
-
-Copyright 2013 James Brumond
-Dual licensed under MIT and GPL
-
 ## Description
 
 A PHP git repository control library. Allows the running of any git command from a PHP class. Runs git commands using `proc_open`, not `exec` or the type, therefore it can run in PHP safe mode.
