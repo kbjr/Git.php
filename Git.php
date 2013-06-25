@@ -487,6 +487,13 @@ class GitRepo {
 		return $this->run("pull $remote $branch");
 	}
 
+	public function log($format = null) {
+		if ($format === null)
+			return $this->run('log');
+		else
+			return $this->run('log --pretty=format:"' . $format . '"');
+	}
+
 	/**
 	 * Sets the project description.
 	 *
