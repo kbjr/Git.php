@@ -6,7 +6,7 @@
  * A PHP git library
  *
  * @package    Git.php
- * @version    0.1.2
+ * @version    0.1.3
  * @author     James Brumond
  * @copyright  Copyright 2013 James Brumond
  * @repo       http://github.com/kbjr/Git.php
