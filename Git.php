@@ -389,6 +389,25 @@ class GitRepo {
 	}
 
 	/**
+	 * Lists remote branches (using `git branch -r`).
+	 *
+	 * Also strips out the HEAD reference (e.g. "origin/HEAD -> origin/master").
+	 *
+	 * @access  public
+	 * @return  array
+	 */
+	public function list_remote_branches() {
+		$branchArray = explode("\n", $this->run("branch -r"));
+		foreach($branchArray as $i => &$branch) {
+			$branch = trim($branch);
+			if ($branch == "" || strpos($branch, 'HEAD -> ') !== false) {
+				unset($branchArray[$i]);
+			}
+		}
+		return $branchArray;
+	}
+
+	/**
 	 * Returns name of active branch
 	 *
 	 * @access  public
