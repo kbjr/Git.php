@@ -104,6 +104,7 @@ class Git {
 class GitRepo {
 
 	protected $repo_path = null;
+	protected $envopts = array();
 
 	/**
 	 * Create a new git repository
@@ -230,7 +231,26 @@ class GitRepo {
 			2 => array('pipe', 'w'),
 		);
 		$pipes = array();
-		$resource = proc_open($command, $descriptorspec, $pipes, $this->repo_path);
+		/* Depending on the value of variables_order, $_ENV may be empty.
+		 * In that case, we have to explicitly set the new variables with
+		 * putenv, and call proc_open with env=null to inherit the reset
+		 * of the system.
+		 *
+		 * This is kind of crappy because we cannot easily restore just those
+		 * variables afterwards.
+		 *
+		 * If $_ENV is not empty, then we can just copy it and be done with it.
+		 */
+		if(count($_ENV) === 0) {
+			$env = NULL;
+			foreach($this->envopts as $k => $v) {
+				putenv(sprintf("%s=%s",$k,$v));
+			}
+		} else {
+			$env = array_merge($_ENV, $this->envopts);
+		}
+		$cwd = $this->repo_path;
+		$resource = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
 		$stdout = stream_get_contents($pipes[1]);
 		$stderr = stream_get_contents($pipes[2]);
@@ -522,6 +542,16 @@ class GitRepo {
 	 */
 	public function get_description() {
 		return file_get_contents($this->repo_path."/.git/description");
+	}
+
+	/**
+	 * Sets custom environment options for calling Git
+	 *
+	 * @param string key
+	 * @param string value
+	 */
+	public function setenv($key, $value) {
+		$this->envopts[$key] = $value;
 	}
 	
 }
