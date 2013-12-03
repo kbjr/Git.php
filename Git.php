@@ -104,6 +104,7 @@ class Git {
 class GitRepo {
 
 	protected $repo_path = null;
+	protected $bare = false;
 	protected $envopts = array();
 
 	/**
@@ -154,6 +155,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  repository path
 	 * @param   bool    create if not exists?
+	 * @param   bool    initialize new Git repo if not exists?
 	 * @return  void
 	 */
 	public function set_repo_path($repo_path, $create_new = false, $_init = true) {
@@ -161,9 +163,17 @@ class GitRepo {
 			if ($new_path = realpath($repo_path)) {
 				$repo_path = $new_path;
 				if (is_dir($repo_path)) {
+					// Is this a work tree?
 					if (file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 						$this->repo_path = $repo_path;
-					} else {
+						$this->bare = false;
+					// Is this a bare repo?
+					} else if (is_file($repo_path."/config")) {
+						if (parse_ini_file($repo_path."/config")['bare']) {
+							$this->repo_path = $repo_path;
+							$this->bare = true;
+						}
+					} else { 
 						if ($create_new) {
 							$this->repo_path = $repo_path;
 							if ($_init) {
