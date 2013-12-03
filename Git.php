@@ -32,16 +32,16 @@ class Git {
 	 * @var string
 	 */
 	protected static $bin = '/usr/bin/git';
-	
+
 	/**
 	 * Sets git executable path
-	 * 
+	 *
 	 * @param string $path executable location
 	 */
 	public static function set_bin($path) {
 		self::$bin = $path;
 	}
-	
+
 	/**
 	 * Gets git executable path
 	 */
@@ -173,7 +173,7 @@ class GitRepo {
 							$this->repo_path = $repo_path;
 							$this->bare = true;
 						}
-					} else { 
+					} else {
 						if ($create_new) {
 							$this->repo_path = $repo_path;
 							if ($_init) {
@@ -509,6 +509,26 @@ class GitRepo {
 		return $this->run("tag -a $tag -m $message");
 	}
 
+	/**
+	 * List all the available repository tags.
+	 *
+	 * Optionally, accept a shell wildcard pattern and return only tags matching it.
+	 *
+	 * @access	public
+	 * @param	string	$pattern	Shell wildcard pattern to match tags against.
+	 * @return	array				Available repository tags.
+	 */
+	public function list_tags($pattern = null) {
+		$tagArray = explode("\n", $this->run("tag -l $pattern"));
+		foreach ($tagArray as $i => &$tag) {
+			$tag = trim($tag);
+			if ($tag == '') {
+				unset($tagArray[$i]);
+			}
+		}
+
+		return $tagArray;
+	}
 
 	/**
 	 * Push specific branch to a remote
@@ -522,7 +542,7 @@ class GitRepo {
 	public function push($remote, $branch) {
 		return $this->run("push --tags $remote $branch");
 	}
-	
+
 	/**
 	 * Pull specific branch from remote
 	 *
@@ -563,7 +583,7 @@ class GitRepo {
 	public function setenv($key, $value) {
 		$this->envopts[$key] = $value;
 	}
-	
+
 }
 
 /* End of file */
