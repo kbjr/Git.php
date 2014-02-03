@@ -290,13 +290,17 @@ class GitRepo {
 
 	/**
 	 * Runs a 'git status' call
+	 *
+	 * Accept a convert to HTML bool
 	 * 
 	 * @access public
 	 * @return string
 	 */
-	public function status() {
+	public function status($html = false) {
 	  $msg = $this->run("status");
-	  $msg = str_replace("\n", "<br />", $msg);
+	  if ($html == true) {
+  	  $msg = str_replace("\n", "<br />", $msg);
+	  }
 	  return $msg;
 	}
 
