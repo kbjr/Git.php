@@ -289,6 +289,18 @@ class GitRepo {
 	}
 
 	/**
+	 * Runs a 'git status' call
+	 * 
+	 * @access public
+	 * @return string
+	 */
+	public function status() {
+	  $msg = $this->run("status");
+	  $msg = str_replace("\n", "<br />", $msg);
+	  return $msg;
+	}
+
+	/**
 	 * Runs a `git add` call
 	 *
 	 * Accepts a list of files to add
