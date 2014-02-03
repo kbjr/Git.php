@@ -294,6 +294,7 @@ class GitRepo {
 	 * Accept a convert to HTML bool
 	 * 
 	 * @access public
+	 * @param bool  return string with <br />
 	 * @return string
 	 */
 	public function status($html = false) {
@@ -385,7 +386,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function clean($dirs = false) {
-		return $this->run("clean".(($dirs) ? " -d" : ""));
+		return $this->run("clean -f".(($dirs) ? " -d" : ""));
 	}
 
 	/**
