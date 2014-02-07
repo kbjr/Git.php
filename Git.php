@@ -383,10 +383,11 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @param   bool    delete directories?
+	 * @param   bool    force clean?
 	 * @return  string
 	 */
-	public function clean($dirs = false) {
-		return $this->run("clean -f".(($dirs) ? " -d" : ""));
+	public function clean($dirs = false, $force = false) {
+		return $this->run("clean".(($force) ? "-f" : "").(($dirs) ? " -d" : ""));
 	}
 
 	/**
