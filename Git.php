@@ -387,7 +387,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function clean($dirs = false, $force = false) {
-		return $this->run("clean".(($force) ? "-f" : "").(($dirs) ? " -d" : ""));
+		return $this->run("clean".(($force) ? " -f" : "").(($dirs) ? " -d" : ""));
 	}
 
 	/**
