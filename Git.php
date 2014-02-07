@@ -169,7 +169,8 @@ class GitRepo {
 						$this->bare = false;
 					// Is this a bare repo?
 					} else if (is_file($repo_path."/config")) {
-						if (parse_ini_file($repo_path."/config")['bare']) {
+					  $parse_ini = parse_ini_file($repo_path."/config");
+						if ($parse_ini['bare']) {
 							$this->repo_path = $repo_path;
 							$this->bare = true;
 						}
@@ -288,6 +289,23 @@ class GitRepo {
 	}
 
 	/**
+	 * Runs a 'git status' call
+	 *
+	 * Accept a convert to HTML bool
+	 * 
+	 * @access public
+	 * @param bool  return string with <br />
+	 * @return string
+	 */
+	public function status($html = false) {
+	  $msg = $this->run("status");
+	  if ($html == true) {
+  	  $msg = str_replace("\n", "<br />", $msg);
+	  }
+	  return $msg;
+	}
+
+	/**
 	 * Runs a `git add` call
 	 *
 	 * Accepts a list of files to add
@@ -365,10 +383,11 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @param   bool    delete directories?
+	 * @param   bool    force clean?
 	 * @return  string
 	 */
-	public function clean($dirs = false) {
-		return $this->run("clean".(($dirs) ? " -d" : ""));
+	public function clean($dirs = false, $force = false) {
+		return $this->run("clean".(($force) ? " -f" : "").(($dirs) ? " -d" : ""));
 	}
 
 	/**
