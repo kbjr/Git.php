@@ -305,11 +305,11 @@ class GitRepo {
 	 * @return string
 	 */
 	public function status($html = false) {
-	  $msg = $this->run("status");
-	  if ($html == true) {
-  	  $msg = str_replace("\n", "<br />", $msg);
-	  }
-	  return $msg;
+		$msg = $this->run("status");
+		if ($html == true) {
+			$msg = str_replace("\n", "<br />", $msg);
+		}
+		return $msg;
 	}
 
 	/**
