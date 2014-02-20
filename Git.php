@@ -327,6 +327,23 @@ class GitRepo {
 		}
 		return $this->run("add $files -v");
 	}
+	
+	/**
+	 * Runs a `git rm` call
+	 *
+	 * Accepts a list of files to remove
+	 *
+	 * @access  public
+	 * @param   mixed   files to remove
+	 * @return  string
+	 */
+	public function rm($files = "*") {
+		if (is_array($files)) {
+			$files = '"'.implode('" "', $files).'"';
+		}
+		return $this->run("rm $files");
+	}
+
 
 	/**
 	 * Runs a `git commit` call
