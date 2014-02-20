@@ -334,14 +334,15 @@ class GitRepo {
 	 * Accepts a list of files to remove
 	 *
 	 * @access  public
-	 * @param   mixed   files to remove
+	 * @param   mixed    files to remove
+	 * @param   Boolean  use the --cached flag?
 	 * @return  string
 	 */
-	public function rm($files = "*") {
+	public function rm($files = "*", $cached = false) {
 		if (is_array($files)) {
 			$files = '"'.implode('" "', $files).'"';
 		}
-		return $this->run("rm $files");
+		return $this->run("rm ".($cached ? '--cached ' : '').$files);
 	}
 
 
