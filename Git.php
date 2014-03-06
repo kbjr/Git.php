@@ -82,6 +82,21 @@ class Git {
 	public static function open($repo_path) {
 		return new GitRepo($repo_path);
 	}
+	
+	/**
+	 * Clones a remote repo into a directory and then returns a GitRepo object
+	 * for the newly created local repo
+	 * 
+	 * Accepts a creation path and a remote to clone from
+	 * 
+	 * @access  public
+	 * @param   string  repository path
+	 * @param   string  remote source
+	 * @return  GitRepo
+	 **/
+	public static function &clone_remote($repo_path, $remote) {
+		return GitRepo::create_new($repo_path, $remote, true);
+	}
 
 	/**
 	 * Checks if a variable is an instance of GitRepo
@@ -124,13 +139,17 @@ class GitRepo {
 	 * @param   string  directory to source
 	 * @return  GitRepo
 	 */
-	public static function &create_new($repo_path, $source = null) {
+	public static function &create_new($repo_path, $source = null, $remote_source = false) {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
 			$repo = new self($repo_path, true, false);
 			if (is_string($source)) {
-				$repo->clone_from($source);
+				if ($remote_source) {
+					$repo->clone_remote($source);
+				} else {
+					$repo->clone_from($source);
+				}
 			} else {
 				$repo->run('init');
 			}
