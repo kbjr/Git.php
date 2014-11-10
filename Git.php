@@ -376,7 +376,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function commit($message = "", $commit_all = true) {
-		var flags = $commit_all ? '-av' : '-v';
+		$flags = $commit_all ? '-av' : '-v';
 		return $this->run("commit '.$flags.' -m ".escapeshellarg($message));
 	}
 
