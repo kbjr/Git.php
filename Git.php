@@ -6,7 +6,7 @@
  * A PHP git library
  *
  * @package    Git.php
- * @version    0.1.2
+ * @version    0.1.4
  * @author     James Brumond
  * @copyright  Copyright 2013 James Brumond
  * @repo       http://github.com/kbjr/Git.php
@@ -32,21 +32,28 @@ class Git {
 	 * @var string
 	 */
 	protected static $bin = '/usr/bin/git';
-	
+
 	/**
 	 * Sets git executable path
-	 * 
+	 *
 	 * @param string $path executable location
 	 */
 	public static function set_bin($path) {
 		self::$bin = $path;
 	}
-	
+
 	/**
 	 * Gets git executable path
 	 */
 	public static function get_bin() {
 		return self::$bin;
+	}
+	
+	/**
+	 * Sets up library for use in a default Windows environment
+	 */
+	public static function windows_mode() {
+		self::set_bin('git');
 	}
 
 	/**
@@ -74,6 +81,21 @@ class Git {
 	 */
 	public static function open($repo_path) {
 		return new GitRepo($repo_path);
+	}
+	
+	/**
+	 * Clones a remote repo into a directory and then returns a GitRepo object
+	 * for the newly created local repo
+	 * 
+	 * Accepts a creation path and a remote to clone from
+	 * 
+	 * @access  public
+	 * @param   string  repository path
+	 * @param   string  remote source
+	 * @return  GitRepo
+	 **/
+	public static function &clone_remote($repo_path, $remote) {
+		return GitRepo::create_new($repo_path, $remote, true);
 	}
 
 	/**
@@ -104,6 +126,8 @@ class Git {
 class GitRepo {
 
 	protected $repo_path = null;
+	protected $bare = false;
+	protected $envopts = array();
 
 	/**
 	 * Create a new git repository
@@ -115,13 +139,17 @@ class GitRepo {
 	 * @param   string  directory to source
 	 * @return  GitRepo
 	 */
-	public static function &create_new($repo_path, $source = null) {
+	public static function &create_new($repo_path, $source = null, $remote_source = false) {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
 			$repo = new self($repo_path, true, false);
 			if (is_string($source)) {
-				$repo->clone_from($source);
+				if ($remote_source) {
+					$repo->clone_remote($source);
+				} else {
+					$repo->clone_from($source);
+				}
 			} else {
 				$repo->run('init');
 			}
@@ -153,6 +181,7 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  repository path
 	 * @param   bool    create if not exists?
+	 * @param   bool    initialize new Git repo if not exists?
 	 * @return  void
 	 */
 	public function set_repo_path($repo_path, $create_new = false, $_init = true) {
@@ -160,8 +189,17 @@ class GitRepo {
 			if ($new_path = realpath($repo_path)) {
 				$repo_path = $new_path;
 				if (is_dir($repo_path)) {
+					// Is this a work tree?
 					if (file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 						$this->repo_path = $repo_path;
+						$this->bare = false;
+					// Is this a bare repo?
+					} else if (is_file($repo_path."/config")) {
+					  $parse_ini = parse_ini_file($repo_path."/config");
+						if ($parse_ini['bare']) {
+							$this->repo_path = $repo_path;
+							$this->bare = true;
+						}
 					} else {
 						if ($create_new) {
 							$this->repo_path = $repo_path;
@@ -230,7 +268,26 @@ class GitRepo {
 			2 => array('pipe', 'w'),
 		);
 		$pipes = array();
-		$resource = proc_open($command, $descriptorspec, $pipes, $this->repo_path);
+		/* Depending on the value of variables_order, $_ENV may be empty.
+		 * In that case, we have to explicitly set the new variables with
+		 * putenv, and call proc_open with env=null to inherit the reset
+		 * of the system.
+		 *
+		 * This is kind of crappy because we cannot easily restore just those
+		 * variables afterwards.
+		 *
+		 * If $_ENV is not empty, then we can just copy it and be done with it.
+		 */
+		if(count($_ENV) === 0) {
+			$env = NULL;
+			foreach($this->envopts as $k => $v) {
+				putenv(sprintf("%s=%s",$k,$v));
+			}
+		} else {
+			$env = array_merge($_ENV, $this->envopts);
+		}
+		$cwd = $this->repo_path;
+		$resource = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
 		$stdout = stream_get_contents($pipes[1]);
 		$stderr = stream_get_contents($pipes[2]);
@@ -258,6 +315,23 @@ class GitRepo {
 	}
 
 	/**
+	 * Runs a 'git status' call
+	 *
+	 * Accept a convert to HTML bool
+	 * 
+	 * @access public
+	 * @param bool  return string with <br />
+	 * @return string
+	 */
+	public function status($html = false) {
+		$msg = $this->run("status");
+		if ($html == true) {
+			$msg = str_replace("\n", "<br />", $msg);
+		}
+		return $msg;
+	}
+
+	/**
 	 * Runs a `git add` call
 	 *
 	 * Accepts a list of files to add
@@ -272,6 +346,24 @@ class GitRepo {
 		}
 		return $this->run("add $files -v");
 	}
+	
+	/**
+	 * Runs a `git rm` call
+	 *
+	 * Accepts a list of files to remove
+	 *
+	 * @access  public
+	 * @param   mixed    files to remove
+	 * @param   Boolean  use the --cached flag?
+	 * @return  string
+	 */
+	public function rm($files = "*", $cached = false) {
+		if (is_array($files)) {
+			$files = '"'.implode('" "', $files).'"';
+		}
+		return $this->run("rm ".($cached ? '--cached ' : '').$files);
+	}
+
 
 	/**
 	 * Runs a `git commit` call
@@ -280,10 +372,12 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @param   string  commit message
+	 * @param   boolean  should all files be committed automatically (-a flag)
 	 * @return  string
 	 */
-	public function commit($message = "") {
-		return $this->run("commit -av -m ".escapeshellarg($message));
+	public function commit($message = "", $commit_all = true) {
+		$flags = $commit_all ? '-av' : '-v';
+		return $this->run("commit ".$flags." -m ".escapeshellarg($message));
 	}
 
 	/**
@@ -335,10 +429,11 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @param   bool    delete directories?
+	 * @param   bool    force clean?
 	 * @return  string
 	 */
-	public function clean($dirs = false) {
-		return $this->run("clean".(($dirs) ? " -d" : ""));
+	public function clean($dirs = false, $force = false) {
+		return $this->run("clean".(($force) ? " -f" : "").(($dirs) ? " -d" : ""));
 	}
 
 	/**
@@ -382,6 +477,25 @@ class GitRepo {
 				$branch = str_replace("* ", "", $branch);
 			}
 			if ($branch == "") {
+				unset($branchArray[$i]);
+			}
+		}
+		return $branchArray;
+	}
+
+	/**
+	 * Lists remote branches (using `git branch -r`).
+	 *
+	 * Also strips out the HEAD reference (e.g. "origin/HEAD -> origin/master").
+	 *
+	 * @access  public
+	 * @return  array
+	 */
+	public function list_remote_branches() {
+		$branchArray = explode("\n", $this->run("branch -r"));
+		foreach($branchArray as $i => &$branch) {
+			$branch = trim($branch);
+			if ($branch == "" || strpos($branch, 'HEAD -> ') !== false) {
 				unset($branchArray[$i]);
 			}
 		}
@@ -460,6 +574,26 @@ class GitRepo {
 		return $this->run("tag -a $tag -m $message");
 	}
 
+	/**
+	 * List all the available repository tags.
+	 *
+	 * Optionally, accept a shell wildcard pattern and return only tags matching it.
+	 *
+	 * @access	public
+	 * @param	string	$pattern	Shell wildcard pattern to match tags against.
+	 * @return	array				Available repository tags.
+	 */
+	public function list_tags($pattern = null) {
+		$tagArray = explode("\n", $this->run("tag -l $pattern"));
+		foreach ($tagArray as $i => &$tag) {
+			$tag = trim($tag);
+			if ($tag == '') {
+				unset($tagArray[$i]);
+			}
+		}
+
+		return $tagArray;
+	}
 
 	/**
 	 * Push specific branch to a remote
@@ -473,7 +607,7 @@ class GitRepo {
 	public function push($remote, $branch) {
 		return $this->run("push --tags $remote $branch");
 	}
-	
+
 	/**
 	 * Pull specific branch from remote
 	 *
@@ -511,7 +645,17 @@ class GitRepo {
 	public function get_description() {
 		return file_get_contents($this->repo_path."/.git/description");
 	}
-	
+
+	/**
+	 * Sets custom environment options for calling Git
+	 *
+	 * @param string key
+	 * @param string value
+	 */
+	public function setenv($key, $value) {
+		$this->envopts[$key] = $value;
+	}
+
 }
 
 /* End of file */
