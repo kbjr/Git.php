@@ -1,5 +1,7 @@
 # Git.php
 
+<a href='https://pledgie.com/campaigns/28604'><img alt='Click here to lend your support to: Git.php and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/28604.png?skin_name=chrome' border='0' ></a>
+
 ## Description
 
 A PHP git repository control library. Allows the running of any git command from a PHP class. Runs git commands using `proc_open`, not `exec` or the type, therefore it can run in PHP safe mode.
