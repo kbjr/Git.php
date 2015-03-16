@@ -571,7 +571,7 @@ class GitRepo {
 		if ($message === null) {
 			$message = $tag;
 		}
-		return $this->run("tag -a $tag -m '$message'");
+		return $this->run("tag -a $tag -m " . escapeshellarg($message));
 	}
 
 	/**
