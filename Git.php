@@ -228,6 +228,16 @@ class GitRepo {
 			}
 		}
 	}
+	
+	/**
+	 * Get the path to the git repo directory (eg. the ".git" directory)
+	 * 
+	 * @access public
+	 * @return string
+	 */
+	public function git_directory_path() {
+		return ($this->bare) ? $this->repo_path : $this->repo_path."/.git";
+	}
 
 	/**
 	 * Tests if git is installed
@@ -640,11 +650,7 @@ class GitRepo {
 	 * @param string $new
 	 */
 	public function set_description($new) {
-		if ($this->bare) {
-			$path = $this->repo_path;
-		} else {
-			$path = $this->repo_path."/.git";
-		}
+		$path = $this->git_directory_path();
 		file_put_contents($path."/description", $new);
 	}
 
@@ -654,11 +660,7 @@ class GitRepo {
 	 * @return string
 	 */
 	public function get_description() {
-		if ($this->bare) {
-			$path = $this->repo_path;
-		} else {
-			$path = $this->repo_path."/.git";
-		}
+		$path = $this->git_directory_path();
 		return file_get_contents($path."/description");
 	}
 
