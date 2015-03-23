@@ -640,7 +640,12 @@ class GitRepo {
 	 * @param string $new
 	 */
 	public function set_description($new) {
-		file_put_contents($this->repo_path."/.git/description", $new);
+		if ($this->bare) {
+			$path = $this->repo_path;
+		} else {
+			$path = $this->repo_path."/.git";
+		}
+		file_put_contents($path."/description", $new);
 	}
 
 	/**
@@ -649,7 +654,12 @@ class GitRepo {
 	 * @return string
 	 */
 	public function get_description() {
-		return file_get_contents($this->repo_path."/.git/description");
+		if ($this->bare) {
+			$path = $this->repo_path;
+		} else {
+			$path = $this->repo_path."/.git";
+		}
+		return file_get_contents($path."/description");
 	}
 
 	/**
