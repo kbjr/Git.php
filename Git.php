@@ -641,6 +641,19 @@ class GitRepo {
 	}
 
 	/**
+	 * List log entries.
+	 *
+	 * @param strgin $format
+	 * @return string
+	 */
+	public function log($format = null) {
+		if ($format === null)
+			return $this->run('log');
+		else
+			return $this->run('log --pretty=format:"' . $format . '"');
+	}
+
+	/**
 	 * Sets the project description.
 	 *
 	 * @param string $new
