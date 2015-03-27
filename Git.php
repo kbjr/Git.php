@@ -149,7 +149,7 @@ class GitRepo {
 			if (is_string($source)) {
 				if ($remote_source) {
 					if (!is_dir($reference) || is_dir($reference.'/.git')) {
-						throw new Exception('"'.realpath($reference).'" is not a git repository. Cannot use as reference.');
+						throw new Exception('"'.$reference.'" is not a git repository. Cannot use as reference.');
 					} if (strlen($reference) && is_dir($reference)) {
 						$reference = realpath($reference);
 						$reference = "--reference $reference";
