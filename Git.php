@@ -92,10 +92,11 @@ class Git {
 	 * @access  public
 	 * @param   string  repository path
 	 * @param   string  remote source
+	 * @param   string  reference path
 	 * @return  GitRepo
 	 **/
-	public static function &clone_remote($repo_path, $remote) {
-		return GitRepo::create_new($repo_path, $remote, true);
+	public static function &clone_remote($repo_path, $remote, $reference = null) {
+		return GitRepo::create_new($repo_path, $remote, true, $reference);
 	}
 
 	/**
@@ -137,16 +138,23 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  repository path
 	 * @param   string  directory to source
+	 * @param   string  reference path
 	 * @return  GitRepo
 	 */
-	public static function &create_new($repo_path, $source = null, $remote_source = false) {
+	public static function &create_new($repo_path, $source = null, $remote_source = false, $reference = null) {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
 			$repo = new self($repo_path, true, false);
 			if (is_string($source)) {
 				if ($remote_source) {
-					$repo->clone_remote($source);
+					if (!is_dir($reference) || !is_dir($reference.'/.git')) {
+						throw new Exception('"'.$reference.'" is not a git repository. Cannot use as reference.');
+					} else if (strlen($reference)) {
+						$reference = realpath($reference);
+						$reference = "--reference $reference";
+					}
+					$repo->clone_remote($source, $reference);
 				} else {
 					$repo->clone_from($source);
 				}
@@ -426,10 +434,11 @@ class GitRepo {
 	 *
 	 * @access  public
 	 * @param   string  source url
+	 * @param   string  reference path
 	 * @return  string
 	 */
-	public function clone_remote($source) {
-		return $this->run("clone $source ".$this->repo_path);
+	public function clone_remote($source, $reference) {
+		return $this->run("clone $reference $source ".$this->repo_path);
 	}
 
 	/**
@@ -650,8 +659,7 @@ class GitRepo {
 	 * @param string $new
 	 */
 	public function set_description($new) {
-		$path = $this->git_directory_path();
-		file_put_contents($path."/description", $new);
+		file_put_contents($this->repo_path."/.git/description", $new);
 	}
 
 	/**
@@ -660,8 +668,7 @@ class GitRepo {
 	 * @return string
 	 */
 	public function get_description() {
-		$path = $this->git_directory_path();
-		return file_get_contents($path."/description");
+		return file_get_contents($this->repo_path."/.git/description");
 	}
 
 	/**
