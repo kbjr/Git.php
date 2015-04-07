@@ -585,6 +585,17 @@ class GitRepo {
         return $result;
     }
 
+    /**
+     * Runs a `git reset` with params
+     *
+     * @access  public
+	 * @param   string $resetStr
+     * @return  string
+     */
+    public function reset($resetStr)
+    {
+        return $this->run("reset {$resetStr}");
+    }
 
 	/**
 	 * Runs a git fetch on the current branch
