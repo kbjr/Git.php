@@ -566,6 +566,25 @@ class GitRepo {
 		return $this->run("merge $branch --no-ff");
 	}
 
+    /**
+     * Runs a `git merge --abort`
+     *
+     * Reverts last merge
+     *
+     * @access  public
+     * @return  string
+     */
+    public function mergeAbort()
+    {
+        try {
+            $result = $this->run('merge --abort');
+        } catch(\Exception $e) {
+            $result = $e->getMessage();
+        }
+
+        return $result;
+    }
+
 
 	/**
 	 * Runs a git fetch on the current branch
@@ -652,6 +671,48 @@ class GitRepo {
 		else
 			return $this->run('log --pretty=format:"' . $format . '"');
 	}
+
+    /**
+     * List log entries with `--grep`
+     *
+     * @param  string $grep    grep by ...
+     * @param  strgin $format
+     * @return string
+     */
+    public function logGrep($grep, $format = null)
+    {
+        if ($format === null) {
+            return $this->run("log --grep='{$grep}'");
+        } else {
+            return $this->run("log --grep='{$grep}' --pretty=format:'{$format}'");
+        }
+    }
+
+    /**
+     * Runs a `git diff`
+     *
+     * @param   string  $object1
+     * @param   string  $object2
+     * @access  public
+     */
+    public function diff($object1, $object2 = null)
+    {
+        if ($object2 === null) {
+            return $this->run("diff '{$object1}'");
+        } else {
+            return $this->run("diff '{$object1}' '{$object2}'");
+        }
+    }
+
+    /**
+     * Runs a `git diff --cached`
+     *
+     * @access  public
+     */
+    public function diffCached()
+    {
+        return $this->run('diff --cached');
+    }
 
 	/**
 	 * Sets the project description.
