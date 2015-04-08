@@ -248,6 +248,17 @@ class GitRepo {
 	}
 
 	/**
+	 * Get the path to the git repo directory
+	 * 
+	 * @access public
+	 * @return string
+	 */
+    public function get_repo_path()
+    {
+        return $this->repo_path;
+    }
+
+	/**
 	 * Tests if git is installed
 	 *
 	 * @access  public
