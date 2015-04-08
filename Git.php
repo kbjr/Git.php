@@ -717,12 +717,16 @@ class GitRepo {
      * @param   string  $object2
      * @access  public
      */
-    public function diff($object1, $object2 = null)
+    public function diff($object1, $object2 = null, $nameOnly = false)
     {
+        $params = '';
+        if ($nameOnly) {
+            $params = '--name-only';
+        }
         if ($object2 === null) {
-            return $this->run("diff '{$object1}'");
+            return $this->run("diff '{$object1}' {$params}");
         } else {
-            return $this->run("diff '{$object1}' '{$object2}'");
+            return $this->run("diff '{$object1}' '{$object2}' {$params}");
         }
     }
 
