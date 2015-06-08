@@ -253,10 +253,10 @@ class GitRepo {
 	 * @access public
 	 * @return string
 	 */
-    public function get_repo_path()
-    {
-        return $this->repo_path;
-    }
+	public function get_repo_path()
+	{
+		return $this->repo_path;
+	}
 
 	/**
 	 * Tests if git is installed
@@ -577,45 +577,77 @@ class GitRepo {
 		return $this->run("merge $branch --no-ff");
 	}
 
-    /**
-     * Runs a `git merge --abort`
-     *
-     * Reverts last merge
-     *
-     * @access  public
-     * @return  string
-     */
-    public function mergeAbort()
-    {
-        try {
-            $result = $this->run('merge --abort');
-        } catch(\Exception $e) {
-            $result = $e->getMessage();
-        }
-
-        return $result;
-    }
-
-    /**
-     * Runs a `git reset` with params
-     *
-     * @access  public
-	 * @param   string $resetStr
-     * @return  string
-     */
-    public function reset($resetStr)
-    {
-        return $this->run("reset {$resetStr}");
-    }
-
 	/**
-	 * Runs a git fetch on the current branch
+	 * Runs a `git merge --abort`
+	 *
+	 * Reverts last merge
 	 *
 	 * @access  public
 	 * @return  string
 	 */
-	public function fetch() {
-		return $this->run("fetch");
+	public function mergeAbort()
+	{
+		try {
+			$result = $this->run('merge --abort');
+		} catch(\Exception $e) {
+			$result = $e->getMessage();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Runs a `git reset` with params
+	 *
+	 * @access  public
+	 * @param   string $resetStr
+	 * @return  string
+	 */
+	public function reset($resetStr)
+	{
+		return $this->run("reset {$resetStr}");
+	}
+
+	/**
+	 * Runs a git fetch on the current branch
+	 *
+	 * @param   bool $dry
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function fetch($dry = false)
+	{
+		$dry = $dry ? ' --dry-run' : '';
+		return $this->run("fetch{$dry}");
+	}
+
+	/**
+	 * Runs a git stash
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function stash()
+	{
+		return $this->run("stash");
+	}
+
+	/**
+	 * Runs a git stash pop
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function stashPop()
+	{
+		try {
+			$result = $this->run("stash pop");
+		} catch (Exception $e) {
+			$result = $e->getMessage();
+		}
+
+		return $result;
 	}
 
 	/**
@@ -770,6 +802,71 @@ class GitRepo {
 		$this->envopts[$key] = $value;
 	}
 
+	/**
+	 * Gets remote branches by pattern
+	 *
+	 * @param   string $pattern
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function getRemoteBranchesByPattern($pattern)
+	{
+		try {
+			return $this->run("branch -r | grep '{$pattern}'");
+		} catch (Exception $ex) {
+			return '';
+		}
+	}
+
+	/**
+	 * Gets remote branches count
+	 *
+	 * @access  public
+	 * @return  int
+	 */
+	public function getRemoteBranchesCount()
+	{
+		try {
+			return $this->run("branch -r | wc -l");
+		} catch (Exception $ex) {
+			return '';
+		}
+	}
+
+	/**
+	 * Deletes remote branches
+	 *
+	 * @param   array $branches
+	 *
+	 * @access  public
+	 * @return  void
+	 */
+	public function deleteRemoteBranches(array $branches)
+	{
+		try {
+			$this->run("push origin --delete " . implode(" ", $branches));
+		} catch (Exception $ex) {
+			return;
+		}
+	}
+
+	/**
+	 * Runs git gc command
+	 *
+	 * @param   string $command
+	 *
+	 * @access  public
+	 * @return  string
+	 */
+	public function gc($command = '')
+	{
+		try {
+			$this->run("gc {$command}");
+		} catch (Exception $ex) {
+			return false;
+		}
+	}
 }
 
 /* End of file */
