@@ -752,21 +752,12 @@ class GitRepo {
     /**
      * Runs a `git diff`
      *
-     * @param   string  $object1
-     * @param   string  $object2
+     * @param   string  $params
      * @access  public
      */
-    public function diff($object1, $object2 = null, $nameOnly = false)
+    public function diff($params = '')
     {
-        $params = '';
-        if ($nameOnly) {
-            $params = '--name-only';
-        }
-        if ($object2 === null) {
-            return $this->run("diff '{$object1}' {$params}");
-        } else {
-            return $this->run("diff '{$object1}' '{$object2}' {$params}");
-        }
+        return $this->run("diff {$params}");
     }
 
     /**
@@ -807,6 +798,16 @@ class GitRepo {
 	 */
 	public function setenv($key, $value) {
 		$this->envopts[$key] = $value;
+	}
+
+	/*
+	 * Clears the local repository from the branches, which were deleted from the remote repository.
+	 *
+	 * @return string
+	 */
+	public function remotePruneOrigin()
+	{
+		return $this->run('remote prune origin');
 	}
 
 	/**
