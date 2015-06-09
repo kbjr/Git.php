@@ -719,11 +719,18 @@ class GitRepo {
 	 * @param strgin $format
 	 * @return string
 	 */
-	public function log($format = null) {
-		if ($format === null)
-			return $this->run('log');
-		else
-			return $this->run('log --pretty=format:"' . $format . '"');
+	public function log($format = null, $file = '', $limit = null) {
+		if ($limit === null) {
+			$limitArg = "";
+		} else {
+			$limitArg = "-{$limit}";
+		}
+
+		if ($format === null) {
+			return $this->run("log {$limitArg} {$file}");
+		} else {
+			return $this->run("log {$limitArg} --pretty=format:'{$format}' {$file}");
+		}
 	}
 
     /**
