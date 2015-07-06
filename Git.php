@@ -325,9 +325,9 @@ class GitRepo {
 		}
 
 		$status = trim(proc_close($resource));
-		if ($status) throw new Exception($stderr);
+		if ($status) throw new Exception($stderr . "\n" . $stdout);
 
-		return $stdout;
+		return $stderr . $stdout;
 	}
 
 	/**
@@ -574,7 +574,14 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function merge($branch) {
-		return $this->run("merge $branch --no-ff");
+		try {
+			$branch = escapeshellarg($branch);
+			$result = $this->run("merge $branch --no-ff");
+		} catch(\Exception $e) {
+			$result = $e->getMessage();
+		}
+
+		return $result;
 	}
 
 	/**
