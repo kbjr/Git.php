@@ -143,7 +143,7 @@ class GitRepo {
      * @throws Exception
      * @return GitRepo
      */
-	public static function &create_new($repo_path, $source = null, $remote_source = false, $reference = null) {
+	public static function &create_new($repo_path, $source = null, $remote_source = false, $reference = null, $command_string = "") {
 		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
@@ -158,7 +158,7 @@ class GitRepo {
 					}
 					$repo->clone_remote($source, $reference);
 				} else {
-					$repo->clone_from($source);
+					$repo->clone_from($source, $command_string);
 				}
 			} else {
 				$repo->run('init');
@@ -437,8 +437,8 @@ class GitRepo {
 	 * @param  string $source source directory
 	 * @return string
 	 */
-	public function clone_from($source) {
-		return $this->run("clone --local $source ".$this->repo_path);
+	public function clone_from($source, $command_string = "") {
+		return $this->run("clone --local $source ".$this->repo_path." ".$command_string);
 	}
 
 	/**
