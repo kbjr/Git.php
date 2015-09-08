@@ -869,6 +869,16 @@ class GitRepo {
 			return false;
 		}
 	}
+
+    /**
+     * Runs a `rev-parse HEAD`
+     *
+     * @access  public
+     */
+    public function revParseHead()
+    {
+        return $this->run('rev-parse HEAD');
+    }
 }
 
 /* End of file */
