@@ -879,6 +879,24 @@ class GitRepo {
     {
         return trim($this->run('rev-parse HEAD'));
     }
+
+    /**
+     * List log entries.
+     *
+     * @param string      $format
+     * @param string      $file
+     * @param string      $startHash
+     * @param string      $endHash
+     * @return string
+     */
+    public function logFileRevisionRange($startHash, $endHash, $format = null, $file = '')
+    {
+        if ($format === null) {
+            return $this->run("log {$startHash}..{$endHash} {$file}");
+        } else {
+            return $this->run("log {$startHash}..{$endHash} --pretty=format:'{$format}' {$file}");
+        }
+    }
 }
 
 /* End of file */
