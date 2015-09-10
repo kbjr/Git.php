@@ -877,7 +877,7 @@ class GitRepo {
      */
     public function revParseHead()
     {
-        return $this->run('rev-parse HEAD');
+        return trim($this->run('rev-parse HEAD'));
     }
 }
 
