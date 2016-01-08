@@ -715,19 +715,23 @@ class GitRepo {
      * @param string|null $limit
      * @return string
      */
-	public function log($format = null, $file = '', $limit = null) {
-		if ($limit === null) {
-			$limitArg = "";
-		} else {
-			$limitArg = "-{$limit}";
-		}
+    public function log($format = null, $file = '', $limit = null, $offset = 0) {
+        $limitArg = '';
+        if ($limit > 0) {
+            $limitArg = "-{$limit}";
+        }
 
-		if ($format === null) {
-			return $this->run("log {$limitArg} {$file}");
-		} else {
-			return $this->run("log {$limitArg} --pretty=format:'{$format}' {$file}");
-		}
-	}
+        $offsetArg = '';
+        if ($offset > 0) {
+            $offsetArg = "--skip={$offset}";
+        }
+
+        if ($format === null) {
+            return $this->run("log {$limitArg} {$offsetArg} {$file}");
+        } else {
+            return $this->run("log {$limitArg} {$offsetArg} --pretty=format:'{$format}' {$file}");
+        }
+    }
 
     /**
      * List log entries with `--grep`
