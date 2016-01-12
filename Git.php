@@ -715,7 +715,7 @@ class GitRepo {
      * @param string|null $limit
      * @return string
      */
-    public function log($format = null, $file = '', $limit = null, $offset = 0) {
+    public function log($format = null, $file = '', $limit = null, $offset = 0, $searchString = '') {
         $limitArg = '';
         if ($limit > 0) {
             $limitArg = "-{$limit}";
@@ -726,10 +726,15 @@ class GitRepo {
             $offsetArg = "--skip={$offset}";
         }
 
+        $searchFor = '';
+        if (!empty($searchString)) {
+            $searchFor = '-S' . escapeshellarg($searchString);
+        }
+
         if ($format === null) {
-            return $this->run("log {$limitArg} {$offsetArg} {$file}");
+            return $this->run("log {$limitArg} {$offsetArg} {$searchFor} {$file}");
         } else {
-            return $this->run("log {$limitArg} {$offsetArg} --pretty=format:'{$format}' {$file}");
+            return $this->run("log {$limitArg} {$offsetArg} {$searchFor} --pretty=format:'{$format}' {$file}");
         }
     }
 
