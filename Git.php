@@ -465,7 +465,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function create_branch($branch) {
-		return $this->run("branch $branch");
+		return $this->run("branch " . escapeshellarg($branch));
 	}
 
 	/**
@@ -549,7 +549,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function checkout($branch) {
-		return $this->run("checkout $branch");
+		return $this->run("checkout " . escapeshellarg($branch));
 	}
 
 
@@ -563,7 +563,7 @@ class GitRepo {
 	 * @return  string
 	 */
 	public function merge($branch) {
-		return $this->run("merge $branch --no-ff");
+		return $this->run("merge " . escapeshellarg($branch) . " --no-ff");
 	}
 
 
@@ -587,7 +587,7 @@ class GitRepo {
 	 * @return string
 	 */
 	public function add_tag($tag, $message = null) {
-		if ($message === null) {
+		if (is_null($message)) {
 			$message = $tag;
 		}
 		return $this->run("tag -a $tag -m " . escapeshellarg($message));
@@ -606,7 +606,7 @@ class GitRepo {
 		$tagArray = explode("\n", $this->run("tag -l $pattern"));
 		foreach ($tagArray as $i => &$tag) {
 			$tag = trim($tag);
-			if ($tag == '') {
+			if (empty($tag)) {
 				unset($tagArray[$i]);
 			}
 		}
