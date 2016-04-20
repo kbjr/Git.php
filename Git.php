@@ -739,6 +739,25 @@ class GitRepo {
     }
 
     /**
+     * Show object
+     *
+     * @param string      $file
+     * @param string      $hash
+     * @return string
+     */
+    public function show($file = '', $hash = '')
+    {
+        $object = $hash;
+        if (!empty($hash) && !empty($file)) {
+            $object .= ':' . $file;
+        } elseif (!empty($file)) {
+            $object = $file;
+        }
+
+        return $this->run("show {$object}");
+    }
+
+    /**
      * List log entries with `--grep`
      *
      * @param  string $grep grep by ...
