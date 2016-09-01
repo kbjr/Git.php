@@ -406,11 +406,13 @@ class GitRepo {
      * @access public
      * @param  string  $message    commit message
      * @param  boolean $commit_all should all files be committed automatically (-a flag)
+     * @param  string $author
      * @return string
      */
-	public function commit($message = "", $commit_all = true) {
+	public function commit($message = "", $commit_all = true, $author = "") {
+		$author = !empty($author) ? "--author=".escapeshellarg($author) : '';
 		$flags = $commit_all ? '-av' : '-v';
-		return $this->run("commit ".$flags." -m ".escapeshellarg($message));
+		return $this->run("commit $author ".$flags." -m ".escapeshellarg($message));
 	}
 
 	/**
