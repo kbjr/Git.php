@@ -651,13 +651,14 @@ class GitRepo {
      *
      * @param string $tag
      * @param string $message
+     * @param string $hash
      * @return string
      */
-	public function add_tag($tag, $message = null) {
+	public function add_tag($tag, $message = null, $hash = '') {
 		if ($message === null) {
 			$message = $tag;
 		}
-		return $this->run("tag -a $tag -m " . escapeshellarg($message));
+		return $this->run("tag -a $tag -m " . escapeshellarg($message) . " $hash");
 	}
 
     /**
