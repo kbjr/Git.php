@@ -925,6 +925,21 @@ class GitRepo {
             return $this->run("log {$startHash}..{$endHash} --pretty=format:'{$format}' {$file}");
         }
     }
+
+    /**
+     * Get blame file
+     * @param $file
+     * @param string $lineRange. Line numbers or regexp
+     * @return string
+     */
+    public function blame($file, $lineRange = '')
+    {
+        if (!empty($lineRange)) {
+            $lineRange = "-L $lineRange";
+        }
+
+        return $this->run("blame -le {$lineRange} {$file}");
+    }
 }
 
 /* End of file */
