@@ -925,6 +925,17 @@ class GitRepo {
             return $this->run("log {$startHash}..{$endHash} --pretty=format:'{$format}' {$file}");
         }
     }
+
+    /**
+     * Get blame file
+     * @param $file
+     * @param string $options .
+     * @return string
+     */
+    public function blame($file, $options = '')
+    {
+        return $this->run("blame {$options} {$file}");
+    }
 }
 
 /* End of file */
