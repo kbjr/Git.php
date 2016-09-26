@@ -932,16 +932,12 @@ class GitRepo {
     /**
      * Get blame file
      * @param $file
-     * @param string $lineRange. Line numbers or regexp
+     * @param string $options .
      * @return string
      */
-    public function blame($file, $lineRange = '')
+    public function blame($file, $options = '')
     {
-        if (!empty($lineRange)) {
-            $lineRange = "-L $lineRange";
-        }
-
-        return $this->run("blame -le {$lineRange} {$file}");
+        return $this->run("blame {$options} {$file}");
     }
 }
 
