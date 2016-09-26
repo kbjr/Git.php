@@ -552,6 +552,26 @@ class GitRepo {
 		return $this->run("checkout $branch");
 	}
 
+	
+	/**
+	 * Runs a `git checkout` call against a specific file
+	 *
+	 * Allows you to revert a named file to a specific revision
+	 *
+	 * Accepts a name for the branch
+	 *
+	 * @access  public
+	 * @param   string  branch name
+	 * @return  string
+	 */
+	public function checkoutFile($revision,$file) {
+		$this->run("checkout $revision $file");
+		// We don't need to do an Add as git
+		return $this->commit("Reverted $file to revision $revision");
+	}
+
+
+	
 
 	/**
 	 * Runs a `git merge` call
@@ -646,11 +666,16 @@ class GitRepo {
 	 * @param strgin $format
 	 * @return string
 	 */
-	public function log($format = null) {
+	public function log($format = null, $fulldiff=false, $filepath=null) {
+	
+                if ($fulldiff){
+                    $diff = "--full-diff -p ";
+                }
+	
 		if ($format === null)
-			return $this->run('log');
+			return $this->run('log ' . $diff . $filepath);
 		else
-			return $this->run('log --pretty=format:"' . $format . '"');
+			return $this->run('log --pretty=format:"' . $format . '" ' . $diff .$filepath);
 	}
 
 	/**
