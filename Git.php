@@ -646,11 +646,16 @@ class GitRepo {
 	 * @param strgin $format
 	 * @return string
 	 */
-	public function log($format = null) {
+	public function log($format = null, $fulldiff=false, $filepath=null) {
+	
+                if ($fulldiff){
+                    $diff = "--full-diff -p ";
+                }
+	
 		if ($format === null)
-			return $this->run('log');
+			return $this->run('log ' . $diff . $filepath);
 		else
-			return $this->run('log --pretty=format:"' . $format . '"');
+			return $this->run('log --pretty=format:"' . $format . '" ' . $diff .$filepath);
 	}
 
 	/**
