@@ -564,10 +564,15 @@ class GitRepo {
 	 * @param   string  branch name
 	 * @return  string
 	 */
-	public function checkoutFile($revision,$file) {
+	public function checkoutFile($revision,$file,$message=null) {
 		$this->run("checkout $revision $file");
 		// We don't need to do an Add as git
-		return $this->commit("Reverted $file to revision $revision");
+
+		if ($message == null){
+			$message = "Reverted $file to revision $revision";
+		}
+
+		return $this->commit($message);
 	}
 
 
