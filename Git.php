@@ -409,10 +409,11 @@ class GitRepo {
      * @param  string $author
      * @return string
      */
-	public function commit($message = "", $commit_all = true, $author = "") {
+	public function commit($message = "", $commit_all = true, $author = "", $date = "") {
 		$author = !empty($author) ? "--author=".escapeshellarg($author) : '';
+		$date = !empty($date) ? "--date=".escapeshellarg($date) : '';
 		$flags = $commit_all ? '-av' : '-v';
-		return $this->run("commit $author ".$flags." -m ".escapeshellarg($message));
+		return $this->run("commit $author $date ".$flags." -m ".escapeshellarg($message));
 	}
 
 	/**
