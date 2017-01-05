@@ -143,7 +143,7 @@ class GitRepo {
 	 * @return  GitRepo
 	 */
 	public static function &create_new($repo_path, $source = null, $remote_source = false, $reference = null) {
-		if (is_dir($repo_path) && file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
+		if (is_dir($repo_path) && file_exists($repo_path."/.git")) {
 			throw new Exception('"'.$repo_path.'" is already a git repository');
 		} else {
 			$repo = new self($repo_path, true, false);
@@ -201,7 +201,7 @@ class GitRepo {
 				$repo_path = $new_path;
 				if (is_dir($repo_path)) {
 					// Is this a work tree?
-					if (file_exists($repo_path."/.git") && is_dir($repo_path."/.git")) {
+					if (file_exists($repo_path."/.git")) {
 						$this->repo_path = $repo_path;
 						$this->bare = false;
 					// Is this a bare repo?
@@ -247,7 +247,20 @@ class GitRepo {
 	 * @return string
 	 */
 	public function git_directory_path() {
-		return ($this->bare) ? $this->repo_path : $this->repo_path."/.git";
+    if ($this->bare) {
+      return $this->repo_path;
+    } else if (is_dir($this->repo_path."/.git")) {
+      return $this->repo_path."/.git";
+    } else if (is_file($this->repo_path."/.git")) {
+      $git_file = file_get_contents($this->repo_path."/.git");
+      if(mb_ereg("^gitdir: (.+)$", $git_file, $matches)){
+        if($matches[1]) {
+          $rel_git_path = $matches[1];
+          return $this->repo_path."/".$rel_git_path;
+        }
+      }
+    }
+    throw new Exception('could not find git dir for '.$this->repo_path.'.');
 	}
 
 	/**
