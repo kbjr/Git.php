@@ -96,7 +96,8 @@ class Git {
 	 * @return  GitRepo
 	 **/
 	public static function &clone_remote($repo_path, $remote, $reference = null) {
-		return GitRepo::create_new($repo_path, $remote, true, $reference);
+		//Changed the below boolean from true to false, since this appears to be a bug when not using a reference repo.  A more robust solution may be appropriate to make it work with AND without a reference.
+		return GitRepo::create_new($repo_path, $remote, false, $reference);
 	}
 
 	/**
@@ -314,7 +315,7 @@ class GitRepo {
 		}
 
 		$status = trim(proc_close($resource));
-		if ($status) throw new Exception($stderr);
+		if ($status) throw new Exception($stderr . "\n" . $stdout); //Not all errors are printed to stderr, so include std out as well.
 
 		return $stdout;
 	}
@@ -615,28 +616,33 @@ class GitRepo {
 	}
 
 	/**
-	 * Push specific branch to a remote
+	 * Push specific branch (or all branches) to a remote
 	 *
-	 * Accepts the name of the remote and local branch
+	 * Accepts the name of the remote and local branch.
+         * If omitted, the command will be "git push", and therefore will take 
+         * on the behavior of your "push.defualt" configuration setting.
 	 *
 	 * @param string $remote
 	 * @param string $branch
 	 * @return string
 	 */
-	public function push($remote, $branch) {
-		return $this->run("push --tags $remote $branch");
+	public function push($remote = "", $branch = "") {
+                //--tags removed since this was preventing branches from being pushed (only tags were)
+		return $this->run("push $remote $branch");
 	}
 
 	/**
 	 * Pull specific branch from remote
 	 *
-	 * Accepts the name of the remote and local branch
+	 * Accepts the name of the remote and local branch.
+         * If omitted, the command will be "git pull", and therefore will take on the
+         * behavior as-configured in your clone / environment.
 	 *
 	 * @param string $remote
 	 * @param string $branch
 	 * @return string
 	 */
-	public function pull($remote, $branch) {
+	public function pull($remote = "", $branch = "") {
 		return $this->run("pull $remote $branch");
 	}
 
