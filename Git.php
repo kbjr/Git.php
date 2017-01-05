@@ -149,11 +149,13 @@ class GitRepo {
 			$repo = new self($repo_path, true, false);
 			if (is_string($source)) {
 				if ($remote_source) {
-					if (!is_dir($reference) || !is_dir($reference.'/.git')) {
-						throw new Exception('"'.$reference.'" is not a git repository. Cannot use as reference.');
-					} else if (strlen($reference)) {
-						$reference = realpath($reference);
-						$reference = "--reference $reference";
+					if (isset($reference)) {
+						if (!is_dir($reference) || !is_dir($reference.'/.git')) {
+							throw new Exception('"'.$reference.'" is not a git repository. Cannot use as reference.');
+						} else if (strlen($reference)) {
+							$reference = realpath($reference);
+							$reference = "--reference $reference";
+						}
 					}
 					$repo->clone_remote($source, $reference);
 				} else {
