@@ -668,7 +668,8 @@ class GitRepo {
 	 * @return string
 	 */
 	public function log($format = null, $fulldiff=false, $filepath=null, $follow=false) {
-	
+		$diff = "";
+		
                 if ($fulldiff){
                     $diff = "--full-diff -p ";
                 }
