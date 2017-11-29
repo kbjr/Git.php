@@ -407,10 +407,12 @@ class GitRepo {
 	 * @access  public
 	 * @param   string  commit message
 	 * @param   boolean  should all files be committed automatically (-a flag)
+	 * @param   string  extra flags to pass, eg: `--allow-empty`
 	 * @return  string
 	 */
-	public function commit($message = "", $commit_all = true) {
+	public function commit($message = "", $commit_all = true, $other_flags) {
 		$flags = $commit_all ? '-av' : '-v';
+		$flags .= ' ' . $other_flags;
 		return $this->run("commit ".$flags." -m ".escapeshellarg($message));
 	}
 
