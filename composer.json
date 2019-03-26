@@ -1,5 +1,5 @@
 {
-    "name": "kbjr/Git.php",
+    "name": "kbjr/git.php",
     "autoload": {
         "classmap": ["Git.php"]
     }
