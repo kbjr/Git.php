@@ -11,7 +11,9 @@ A system with [git](http://git-scm.com/) installed
 ## Basic Use
 
 ```php
-require_once('Git.php');
+require __DIR__ . '/../vendor/autoload.php';
+
+use Kbjr\Git\Git;
 
 $repo = Git::open('/path/to/repo');  // -or- Git::create('/path/to/repo')
 
