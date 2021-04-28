@@ -47,13 +47,8 @@ $gitTests = [
 
 	'Git::create([ $source ])' => function() {
 		$return = null;
-		try {
-			$repo = Git::create(DIR . "/createfrom", DIR . "/create");
-		} catch (\Throwable $th) {
-			//throw $th;
-			var_dump($th->getMessage(), $th->getFile(), $th->getLine());
-			return array(2, "Git::create([ \$source ]) failed to produce expected output.");
-		}
+
+		$repo = Git::create(DIR . "/createfrom", DIR . "/create");
 
 		if (! Git::isRepo($repo)) {
 			$return = array(2, "Git::create([ \$source ]) failed to produce expected output.");
@@ -167,7 +162,7 @@ class GitTestSuite
 
 		$test = new GitTestSuiteControl();
 
-		foreach ($GLOBALS['gitTests'] as $name => $callback) {
+		foreach ($tests as $name => $callback) {
 			$test->runTest($name, $callback);
 		}
 
