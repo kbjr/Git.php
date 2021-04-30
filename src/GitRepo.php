@@ -1,121 +1,8 @@
 <?php
 
-/*
- * Git.php
- *
- * A PHP git library
- *
- * @package    Git.php
- * @version    0.1.4
- * @author     James Brumond
- * @copyright  Copyright 2013 James Brumond
- * @repo       http://github.com/kbjr/Git.php
- */
+namespace Kbjr\Git;
 
-if (__FILE__ == $_SERVER['SCRIPT_FILENAME']) die('Bad load order');
-
-// ------------------------------------------------------------------------
-
-/**
- * Git Interface Class
- *
- * This class enables the creating, reading, and manipulation
- * of git repositories.
- *
- * @class  Git
- */
-class Git {
-
-	/**
-	 * Git executable location
-	 *
-	 * @var string
-	 */
-	protected static $bin = '/usr/bin/git';
-
-	/**
-	 * Sets git executable path
-	 *
-	 * @param string $path executable location
-	 */
-	public static function set_bin($path) {
-		self::$bin = $path;
-	}
-
-	/**
-	 * Gets git executable path
-	 */
-	public static function get_bin() {
-		return self::$bin;
-	}
-
-	/**
-	 * Sets up library for use in a default Windows environment
-	 */
-	public static function windows_mode() {
-		self::set_bin('git');
-	}
-
-	/**
-	 * Create a new git repository
-	 *
-	 * Accepts a creation path, and, optionally, a source path
-	 *
-	 * @access  public
-	 * @param   string  repository path
-	 * @param   string  directory to source
-	 * @return  GitRepo
-	 */
-	public static function &create($repo_path, $source = null) {
-		return GitRepo::create_new($repo_path, $source);
-	}
-
-	/**
-	 * Open an existing git repository
-	 *
-	 * Accepts a repository path
-	 *
-	 * @access  public
-	 * @param   string  repository path
-	 * @return  GitRepo
-	 */
-	public static function open($repo_path) {
-		return new GitRepo($repo_path);
-	}
-
-	/**
-	 * Clones a remote repo into a directory and then returns a GitRepo object
-	 * for the newly created local repo
-	 *
-	 * Accepts a creation path and a remote to clone from
-	 *
-	 * @access  public
-	 * @param   string  repository path
-	 * @param   string  remote source
-	 * @param   string  reference path
-	 * @return  GitRepo
-	 **/
-	public static function &clone_remote($repo_path, $remote, $reference = null) {
-		//Changed the below boolean from true to false, since this appears to be a bug when not using a reference repo.  A more robust solution may be appropriate to make it work with AND without a reference.
-		return GitRepo::create_new($repo_path, $remote, false, $reference);
-	}
-
-	/**
-	 * Checks if a variable is an instance of GitRepo
-	 *
-	 * Accepts a variable
-	 *
-	 * @access  public
-	 * @param   mixed   variable
-	 * @return  bool
-	 */
-	public static function is_repo($var) {
-		return (get_class($var) == 'GitRepo');
-	}
-
-}
-
-// ------------------------------------------------------------------------
+use Exception;
 
 /**
  * Git Repository Interface Class
@@ -127,9 +14,9 @@ class Git {
  */
 class GitRepo {
 
-	protected $repo_path = null;
+	protected $repoPath = null;
 	protected $bare = false;
-	protected $envopts = array();
+	protected $envopts = [];
 
 	/**
 	 * Create a new git repository
@@ -142,24 +29,25 @@ class GitRepo {
 	 * @param   string  reference path
 	 * @return  GitRepo
 	 */
-	public static function &create_new($repo_path, $source = null, $remote_source = false, $reference = null) {
-		if (is_dir($repo_path) && file_exists($repo_path."/.git")) {
-			throw new Exception('"'.$repo_path.'" is already a git repository');
+	public static function createNew($repoPath, $source = null, $remoteSource = false, $reference = null)
+	{
+		if (is_dir($repoPath) && file_exists($repoPath . "/.git")) {
+			throw new Exception('"' . $repoPath . '" is already a git repository');
 		} else {
-			$repo = new self($repo_path, true, false);
+			$repo = new self($repoPath, true, false);
 			if (is_string($source)) {
-				if ($remote_source) {
+				if ($remoteSource) {
 					if (isset($reference)) {
 						if (!is_dir($reference) || !is_dir($reference.'/.git')) {
-							throw new Exception('"'.$reference.'" is not a git repository. Cannot use as reference.');
+							throw new Exception('"' . $reference . '" is not a git repository. Cannot use as reference.');
 						} else if (strlen($reference)) {
 							$reference = realpath($reference);
 							$reference = "--reference $reference";
 						}
 					}
-					$repo->clone_remote($source, $reference);
+					$repo->cloneRemote($source, $reference);
 				} else {
-					$repo->clone_from($source);
+					$repo->cloneFrom($source);
 				}
 			} else {
 				$repo->run('init');
@@ -178,9 +66,10 @@ class GitRepo {
 	 * @param   bool    create if not exists?
 	 * @return  void
 	 */
-	public function __construct($repo_path = null, $create_new = false, $_init = true) {
-		if (is_string($repo_path)) {
-			$this->set_repo_path($repo_path, $create_new, $_init);
+	public function __construct($repoPath = null, $createNew = false, $_init = true)
+	{
+		if (is_string($repoPath)) {
+			$this->setRepoPath($repoPath, $createNew, $_init);
 		}
 	}
 
@@ -195,72 +84,73 @@ class GitRepo {
 	 * @param   bool    initialize new Git repo if not exists?
 	 * @return  void
 	 */
-	public function set_repo_path($repo_path, $create_new = false, $_init = true) {
-		if (is_string($repo_path)) {
-			if ($new_path = realpath($repo_path)) {
-				$repo_path = $new_path;
-				if (is_dir($repo_path)) {
+	public function setRepoPath($repoPath, $createNew = false, $_init = true) {
+		if (is_string($repoPath)) {
+			if ($newPath = realpath($repoPath)) {
+				$repoPath = $newPath;
+				if (is_dir($repoPath)) {
 					// Is this a work tree?
-					if (file_exists($repo_path."/.git")) {
-						$this->repo_path = $repo_path;
+					if (file_exists($repoPath . "/.git")) {
+						$this->repoPath = $repoPath;
 						$this->bare = false;
 					// Is this a bare repo?
-					} else if (is_file($repo_path."/config")) {
-					  $parse_ini = parse_ini_file($repo_path."/config");
+					} else if (is_file($repoPath . "/config")) {
+					  $parse_ini = parse_ini_file($repoPath . "/config");
 						if ($parse_ini['bare']) {
-							$this->repo_path = $repo_path;
+							$this->repoPath = $repoPath;
 							$this->bare = true;
 						}
 					} else {
-						if ($create_new) {
-							$this->repo_path = $repo_path;
+						if ($createNew) {
+							$this->repoPath = $repoPath;
 							if ($_init) {
 								$this->run('init');
 							}
 						} else {
-							throw new Exception('"'.$repo_path.'" is not a git repository');
+							throw new Exception('"' . $repoPath . '" is not a git repository');
 						}
 					}
 				} else {
-					throw new Exception('"'.$repo_path.'" is not a directory');
+					throw new Exception('"' . $repoPath . '" is not a directory');
 				}
 			} else {
-				if ($create_new) {
-					if ($parent = realpath(dirname($repo_path))) {
-						mkdir($repo_path);
-						$this->repo_path = $repo_path;
+				if ($createNew) {
+					if ($parent = realpath(dirname($repoPath))) {
+						mkdir($repoPath);
+						$this->repoPath = $repoPath;
 						if ($_init) $this->run('init');
 					} else {
 						throw new Exception('cannot create repository in non-existent directory');
 					}
 				} else {
-					throw new Exception('"'.$repo_path.'" does not exist');
+					throw new Exception('"' . $repoPath . '" does not exist');
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Get the path to the git repo directory (eg. the ".git" directory)
-	 * 
+	 *
 	 * @access public
 	 * @return string
 	 */
-	public function git_directory_path() {
-    if ($this->bare) {
-      return $this->repo_path;
-    } else if (is_dir($this->repo_path."/.git")) {
-      return $this->repo_path."/.git";
-    } else if (is_file($this->repo_path."/.git")) {
-      $git_file = file_get_contents($this->repo_path."/.git");
-      if(mb_ereg("^gitdir: (.+)$", $git_file, $matches)){
-        if($matches[1]) {
-          $rel_git_path = $matches[1];
-          return $this->repo_path."/".$rel_git_path;
-        }
-      }
-    }
-    throw new Exception('could not find git dir for '.$this->repo_path.'.');
+	public function gitDirectoryPath()
+	{
+		if ($this->bare) {
+			return $this->repoPath;
+		} else if (is_dir($this->repoPath . "/.git")) {
+			return $this->repoPath . "/.git";
+		} else if (is_file($this->repoPath . "/.git")) {
+			$gitFile = file_get_contents($this->repoPath . "/.git");
+			if(mb_ereg("^gitdir: (.+)$", $gitFile, $matches)){
+				if($matches[1]) {
+					$relGitPath = $matches[1];
+					return $this->repoPath . "/" . $relGitPath;
+				}
+			}
+		}
+		throw new Exception('could not find git dir for ' . $this->repoPath . '.');
 	}
 
 	/**
@@ -269,21 +159,21 @@ class GitRepo {
 	 * @access  public
 	 * @return  bool
 	 */
-	public function test_git() {
-		$descriptorspec = array(
-			1 => array('pipe', 'w'),
-			2 => array('pipe', 'w'),
-		);
-		$pipes = array();
-		$resource = proc_open(Git::get_bin(), $descriptorspec, $pipes);
+	public function testGit()
+	{
+		$descriptorspec = [
+			1 => ['pipe', 'w'],
+			2 => ['pipe', 'w'],
+		];
+		$pipes = [];
+		$resource = proc_open(Git::getBin(), $descriptorspec, $pipes);
 
-		$stdout = stream_get_contents($pipes[1]);
-		$stderr = stream_get_contents($pipes[2]);
 		foreach ($pipes as $pipe) {
 			fclose($pipe);
 		}
 
 		$status = trim(proc_close($resource));
+
 		return ($status != 127);
 	}
 
@@ -296,12 +186,13 @@ class GitRepo {
 	 * @param   string  command to run
 	 * @return  string
 	 */
-	protected function run_command($command) {
-		$descriptorspec = array(
-			1 => array('pipe', 'w'),
-			2 => array('pipe', 'w'),
-		);
-		$pipes = array();
+	protected function runCommand($command)
+	{
+		$descriptorspec = [
+			1 => ['pipe', 'w'],
+			2 => ['pipe', 'w'],
+		];
+		$pipes = [];
 		/* Depending on the value of variables_order, $_ENV may be empty.
 		 * In that case, we have to explicitly set the new variables with
 		 * putenv, and call proc_open with env=null to inherit the reset
@@ -320,7 +211,7 @@ class GitRepo {
 		} else {
 			$env = array_merge($_ENV, $this->envopts);
 		}
-		$cwd = $this->repo_path;
+		$cwd = $this->repoPath;
 		$resource = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
 
 		$stdout = stream_get_contents($pipes[1]);
@@ -344,8 +235,9 @@ class GitRepo {
 	 * @param   string  command to run
 	 * @return  string
 	 */
-	public function run($command) {
-		return $this->run_command(Git::get_bin()." ".$command);
+	public function run($command)
+	{
+		return $this->runCommand(Git::getBin()." ".$command);
 	}
 
 	/**
@@ -357,7 +249,8 @@ class GitRepo {
 	 * @param bool  return string with <br />
 	 * @return string
 	 */
-	public function status($html = false) {
+	public function status($html = false)
+	{
 		$msg = $this->run("status");
 		if ($html == true) {
 			$msg = str_replace("\n", "<br />", $msg);
@@ -374,7 +267,8 @@ class GitRepo {
 	 * @param   mixed   files to add
 	 * @return  string
 	 */
-	public function add($files = "*") {
+	public function add($files = "*")
+	{
 		if (is_array($files)) {
 			$files = '"'.implode('" "', $files).'"';
 		}
@@ -391,7 +285,8 @@ class GitRepo {
 	 * @param   Boolean  use the --cached flag?
 	 * @return  string
 	 */
-	public function rm($files = "*", $cached = false) {
+	public function rm($files = "*", $cached = false)
+	{
 		if (is_array($files)) {
 			$files = '"'.implode('" "', $files).'"';
 		}
@@ -409,9 +304,10 @@ class GitRepo {
 	 * @param   boolean  should all files be committed automatically (-a flag)
 	 * @return  string
 	 */
-	public function commit($message = "", $commit_all = true) {
-		$flags = $commit_all ? '-av' : '-v';
-		return $this->run("commit ".$flags." -m ".escapeshellarg($message));
+	public function commit($message = "", $commitAll = true)
+	{
+		$flags = $commitAll ? '-av' : '-v';
+		return $this->run("commit " . $flags . " -m " . escapeshellarg($message));
 	}
 
 	/**
@@ -424,8 +320,9 @@ class GitRepo {
 	 * @param   string  target directory
 	 * @return  string
 	 */
-	public function clone_to($target) {
-		return $this->run("clone --local ".$this->repo_path." $target");
+	public function cloneTo($target)
+	{
+		return $this->run("clone --local " . $this->repoPath . " $target");
 	}
 
 	/**
@@ -438,8 +335,8 @@ class GitRepo {
 	 * @param   string  source directory
 	 * @return  string
 	 */
-	public function clone_from($source) {
-		return $this->run("clone --local $source ".$this->repo_path);
+	public function cloneFrom($source) {
+		return $this->run("clone --local $source " . $this->repoPath);
 	}
 
 	/**
@@ -453,8 +350,9 @@ class GitRepo {
 	 * @param   string  reference path
 	 * @return  string
 	 */
-	public function clone_remote($source, $reference) {
-		return $this->run("clone $reference $source ".$this->repo_path);
+	public function cloneRemote($source, $reference)
+	{
+		return $this->run("clone $reference $source " . $this->repoPath);
 	}
 
 	/**
@@ -467,7 +365,8 @@ class GitRepo {
 	 * @param   bool    force clean?
 	 * @return  string
 	 */
-	public function clean($dirs = false, $force = false) {
+	public function clean($dirs = false, $force = false)
+	{
 		return $this->run("clean".(($force) ? " -f" : "").(($dirs) ? " -d" : ""));
 	}
 
@@ -480,7 +379,8 @@ class GitRepo {
 	 * @param   string  branch name
 	 * @return  string
 	 */
-	public function create_branch($branch) {
+	public function createBranch($branch)
+	{
 		return $this->run("branch " . escapeshellarg($branch));
 	}
 
@@ -493,7 +393,8 @@ class GitRepo {
 	 * @param   string  branch name
 	 * @return  string
 	 */
-	public function delete_branch($branch, $force = false) {
+	public function deleteBranch($branch, $force = false)
+	{
 		return $this->run("branch ".(($force) ? '-D' : '-d')." $branch");
 	}
 
@@ -504,7 +405,8 @@ class GitRepo {
 	 * @param   bool    keep asterisk mark on active branch
 	 * @return  array
 	 */
-	public function list_branches($keep_asterisk = false) {
+	public function listBranches($keep_asterisk = false)
+	{
 		$branchArray = explode("\n", $this->run("branch"));
 		foreach($branchArray as $i => &$branch) {
 			$branch = trim($branch);
@@ -526,7 +428,8 @@ class GitRepo {
 	 * @access  public
 	 * @return  array
 	 */
-	public function list_remote_branches() {
+	public function listRemoteBranches()
+	{
 		$branchArray = explode("\n", $this->run("branch -r"));
 		foreach($branchArray as $i => &$branch) {
 			$branch = trim($branch);
@@ -544,8 +447,9 @@ class GitRepo {
 	 * @param   bool    keep asterisk mark on branch name
 	 * @return  string
 	 */
-	public function active_branch($keep_asterisk = false) {
-		$branchArray = $this->list_branches(true);
+	public function activeBranch($keep_asterisk = false)
+	{
+		$branchArray = $this->listBranches(true);
 		$active_branch = preg_grep("/^\*/", $branchArray);
 		reset($active_branch);
 		if ($keep_asterisk) {
@@ -564,10 +468,10 @@ class GitRepo {
 	 * @param   string  branch name
 	 * @return  string
 	 */
-	public function checkout($branch) {
+	public function checkout($branch)
+	{
 		return $this->run("checkout " . escapeshellarg($branch));
 	}
-
 
 	/**
 	 * Runs a `git merge` call
@@ -578,10 +482,10 @@ class GitRepo {
 	 * @param   string $branch
 	 * @return  string
 	 */
-	public function merge($branch) {
+	public function merge($branch)
+	{
 		return $this->run("merge " . escapeshellarg($branch) . " --no-ff");
 	}
-
 
 	/**
 	 * Runs a git fetch on the current branch
@@ -589,7 +493,8 @@ class GitRepo {
 	 * @access  public
 	 * @return  string
 	 */
-	public function fetch() {
+	public function fetch()
+	{
 		return $this->run("fetch");
 	}
 
@@ -602,7 +507,8 @@ class GitRepo {
 	 * @param string $message
 	 * @return string
 	 */
-	public function add_tag($tag, $message = null) {
+	public function addTag($tag, $message = null)
+	{
 		if (is_null($message)) {
 			$message = $tag;
 		}
@@ -618,7 +524,7 @@ class GitRepo {
 	 * @param	string	$pattern	Shell wildcard pattern to match tags against.
 	 * @return	array				Available repository tags.
 	 */
-	public function list_tags($pattern = null) {
+	public function listTags($pattern = null) {
 		$tagArray = explode("\n", $this->run("tag -l $pattern"));
 		foreach ($tagArray as $i => &$tag) {
 			$tag = trim($tag);
@@ -634,15 +540,16 @@ class GitRepo {
 	 * Push specific branch (or all branches) to a remote
 	 *
 	 * Accepts the name of the remote and local branch.
-         * If omitted, the command will be "git push", and therefore will take 
-         * on the behavior of your "push.defualt" configuration setting.
+	 * If omitted, the command will be "git push", and therefore will take
+	 * on the behavior of your "push.defualt" configuration setting.
 	 *
 	 * @param string $remote
 	 * @param string $branch
 	 * @return string
 	 */
-	public function push($remote = "", $branch = "") {
-                //--tags removed since this was preventing branches from being pushed (only tags were)
+	public function push($remote = "", $branch = "")
+	{
+        //--tags removed since this was preventing branches from being pushed (only tags were)
 		return $this->run("push $remote $branch");
 	}
 
@@ -650,39 +557,42 @@ class GitRepo {
 	 * Pull specific branch from remote
 	 *
 	 * Accepts the name of the remote and local branch.
-         * If omitted, the command will be "git pull", and therefore will take on the
-         * behavior as-configured in your clone / environment.
+     * If omitted, the command will be "git pull", and therefore will take on the
+     * behavior as-configured in your clone / environment.
 	 *
 	 * @param string $remote
 	 * @param string $branch
 	 * @return string
 	 */
-	public function pull($remote = "", $branch = "") {
+	public function pull($remote = "", $branch = "")
+	{
 		return $this->run("pull $remote $branch");
 	}
 
 	/**
 	 * List log entries.
 	 *
-	 * @param strgin $format
+	 * @param string $format
 	 * @return string
 	 */
-	public function log($format = null, $fulldiff=false, $filepath=null, $follow=false) {
+	public function log($format = null, $fullDiff = false, $filepath = null, $follow = false)
+	{
 		$diff = "";
-		
-                if ($fulldiff){
-                    $diff = "--full-diff -p ";
-                }
+
+		if ($fullDiff){
+			$diff = "--full-diff -p ";
+		}
 
 		if ($follow){
 		    // Can't use full-diff with follow
 		    $diff = "--follow -- ";
 		}
-	
-		if ($format === null)
+
+		if ($format === null) {
 			return $this->run('log ' . $diff . $filepath);
-		else
-			return $this->run('log --pretty=format:"' . $format . '" ' . $diff .$filepath);
+		} else {
+			return $this->run('log --pretty=format:"' . $format . '" ' . $diff . $filepath);
+		}
 	}
 
 	/**
@@ -690,9 +600,10 @@ class GitRepo {
 	 *
 	 * @param string $new
 	 */
-	public function set_description($new) {
-		$path = $this->git_directory_path();
-		file_put_contents($path."/description", $new);
+	public function setDescription($new)
+	{
+		$path = $this->gitDirectoryPath();
+		file_put_contents($path . "/description", $new);
 	}
 
 	/**
@@ -700,9 +611,10 @@ class GitRepo {
 	 *
 	 * @return string
 	 */
-	public function get_description() {
-		$path = $this->git_directory_path();
-		return file_get_contents($path."/description");
+	public function getDescription()
+	{
+		$path = $this->gitDirectoryPath();
+		return file_get_contents($path . "/description");
 	}
 
 	/**
@@ -711,10 +623,8 @@ class GitRepo {
 	 * @param string key
 	 * @param string value
 	 */
-	public function setenv($key, $value) {
+	public function setenv($key, $value)
+	{
 		$this->envopts[$key] = $value;
 	}
-
 }
-
-/* End of file */
