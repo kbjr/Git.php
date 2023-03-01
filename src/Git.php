@@ -38,9 +38,11 @@ class Git
 
 	function __construct()
 	{
-		if(file_exists('/usr/bin/git'))
-		{self::$bin = '/usr/bin/git';}
-		else{self::$bin = 'git';}
+		if (file_exists('/usr/bin/git')) {
+			self::$bin = '/usr/bin/git';
+		} else {
+			self::$bin = 'git';
+		}
 	}
 
 	/**
