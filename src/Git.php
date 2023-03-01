@@ -29,7 +29,19 @@ class Git
 	 *
 	 * @var string
 	 */
-	protected static $bin = '/usr/bin/git';
+	protected static $bin;
+
+	/**
+	 * Constructor
+	 *
+	 */
+
+	function __construct()
+	{
+		if(file_exists('/usr/bin/git'))
+		{self::$bin = '/usr/bin/git';}
+		else{self::$bin = 'git';}
+	}
 
 	/**
 	 * Sets git executable path
